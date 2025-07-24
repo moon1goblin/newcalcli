@@ -1,7 +1,7 @@
 package dbshit
 
 import(
-	// "time"
+	"time"
 	"database/sql"
 	"strings"
 
@@ -49,10 +49,7 @@ func GetFuckingEverything(db_ptr *sql.DB) (string, error) {
 
 type Event struct {
 	Name string
-	Begin_time string
-	// Begin_time time.Time
-	// end_time time.Time
-	// TODO: write a time parser and store time instead of just string
+	Begin_time time.Time
 }
 
 func (event Event) Push(db_ptr *sql.DB) error {
@@ -62,8 +59,7 @@ func (event Event) Push(db_ptr *sql.DB) error {
 		VALUES 
 		(?, ?)`, 
 		event.Name,
-		event.Begin_time,
-		// event.Begin_time.Format(time.DateTime),
+		event.Begin_time.Format(time.DateTime),
 	)
 	return err
 }
