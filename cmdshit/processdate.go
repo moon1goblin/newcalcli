@@ -1,11 +1,11 @@
 package cmdshit
 
 import (
-	"time"
 	"strings"
 	"strconv"
 	"errors"
 	"slices"
+	"time"
 )
 
 var delimiters = []rune{':', ' ', '.', '/', '-'}

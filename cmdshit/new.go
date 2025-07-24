@@ -2,8 +2,9 @@ package cmdshit
 
 import (
 	"calcli/dbshit"
-	"context"
 	"database/sql"
+	"context"
+	"errors"
 
 	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"
@@ -43,5 +44,16 @@ func newAction(ctx context.Context, cmd *cli.Command) error {
 	// take the db_ptr out of the context (again idk wtf that is)
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
-	return my_event.Push(db_ptr)
+	found, err := my_event.Find(db_ptr)
+	if err != nil {
+		return err
+	}
+	if found {
+		return errors.New("newAction error: event already exists")
+	}
+
+	if err := my_event.Push(db_ptr); err != nil {
+		return err
+	}
+	return nil
 }

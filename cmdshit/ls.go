@@ -1,11 +1,11 @@
 package cmdshit
 
 import (
-	"fmt"
-	"context"
-	"time"
 	"calcli/dbshit"
 	"database/sql"
+	"context"
+	"time"
+	"fmt"
 
 	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"

@@ -3,22 +3,14 @@ package main
 import (
 	"calcli/cmdshit"
 
+	"database/sql"
 	"context"
 	"log"
 	"os"
-	"database/sql"
 
 	_ "modernc.org/sqlite"
 	"github.com/urfave/cli/v3"
 )
-
-// ive been coding in golang for like a week
-// and im already tired of this shit
-func handleErr(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
-}
 
 func main() {
 	cmds := &cli.Command{
@@ -30,6 +22,7 @@ func main() {
 			ctx = context.WithValue(ctx, "db_ptr", db_ptr)
 			return ctx, err
 		},
+
 		After: func(ctx context.Context, _ *cli.Command) error {
 			// take the db_ptr out of the context (again idk wtf that is)
 			db_ptr := ctx.Value("db_ptr").(*sql.DB)
@@ -38,6 +31,7 @@ func main() {
 			err := db_ptr.Close()
 			return err
 		},
+
 		Commands: []*cli.Command{
 			cmdshit.Cmd_new,
 			cmdshit.Cmd_ls,
@@ -46,5 +40,7 @@ func main() {
 		},
 	}
 
-	handleErr(cmds.Run(context.Background(), os.Args))
+	if err := cmds.Run(context.Background(), os.Args); err != nil {
+		log.Fatal(err)
+	}
 }

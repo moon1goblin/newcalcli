@@ -1,8 +1,8 @@
 package cmdshit
 
 import (
-	"context"
 	"database/sql"
+	"context"
 
 	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"
@@ -38,7 +38,8 @@ func rmAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 	if _, err := db_ptr.Exec(
-		`DELETE FROM main 
+		`
+		DELETE FROM main 
 		WHERE event_id=?;
 		`,
 		cmd.String("id"),

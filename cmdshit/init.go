@@ -22,25 +22,29 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 
 	if _, err := db_ptr.Exec(
 		// make columns not null idk?
-		`CREATE TABLE main(
+		`
+		CREATE TABLE main(
 			event_id INTEGER PRIMARY KEY
 			, event_name TEXT
 			, begin_datetime TEXT
-		);`,
+		);
+		`,
 	); err != nil {
 		return err
 	}
 
 	// create a sorted view for the table
 	// its used in dbshit.GetEventsInRange or something
-	if _, err := db_ptr.Exec(`
+	if _, err := db_ptr.Exec(
+		`
 		CREATE VIEW sorted_view AS 
 		SELECT * 
 		FROM main 
 		ORDER BY 
 		datetime(begin_datetime) 
 		ASC;
-	`); err != nil {
+		`,
+	); err != nil {
 		return err
 	}
 
