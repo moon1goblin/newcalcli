@@ -42,6 +42,7 @@ func main() {
 			cmdshit.Cmd_new,
 			cmdshit.Cmd_ls,
 			cmdshit.Cmd_init,
+			cmdshit.Cmd_rm,
 		},
 	}
 
