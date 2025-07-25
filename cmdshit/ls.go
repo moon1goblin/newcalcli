@@ -34,11 +34,11 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 	// process dates
-	begin_time, err := ProcessDate(cmd.String("begin"))
+	begin_time, _, err := TimeFromStr(cmd.String("begin"))
 	if err != nil && !errors.Is(err, ErrEmptyString) {
 		return fmt.Errorf("lsAction error on begin flag: %w", err)
 	}
-	end_time, err := ProcessDate(cmd.String("begin"))
+	end_time, _, err := TimeFromStr(cmd.String("begin"))
 	if err != nil && !errors.Is(err, ErrEmptyString) {
 		return fmt.Errorf("lsAction error on end flag: %w", err)
 	}
@@ -50,15 +50,27 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 		db_ptr,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("lsAction error: %w", err)
 	}
 
 	// dereferencing nil ptr is ub i think haha
 	if events == nil {
 		return nil
 	}
+	get_str_from_potentially_null_time_longassnameik := func(str_ptr *string) string {
+		if str_ptr == nil {
+			return "null vim btw"
+		}
+		return *str_ptr
+	}
 	for _, event := range *events {
-		fmt.Println(event.Id, event.Name, event.Begin_time)
+		fmt.Println(
+			event.Id,
+			event.Name,
+			*event.Begin_time.String(),
+			get_str_from_potentially_null_time_longassnameik(event.End_time.String()),
+			event.Type,
+		)
 	}
 
 	return nil

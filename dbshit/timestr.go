@@ -1,8 +1,9 @@
 package dbshit
 
-import(
-	"time"
+import (
 	"errors"
+	"fmt"
+	"time"
 )
 
 // fuck sqlite datetimes
@@ -10,24 +11,36 @@ import(
 type TimeStr struct {
 	datetimeval time.Time
 	stringval string
+	is_null bool
 }
 
-func (t TimeStr) String() string {
-	return t.stringval
+func (t TimeStr) String() *string {
+	if t.is_null {
+		return nil
+	}
+	return &t.stringval
 }
 
-func (t TimeStr) Time() time.Time {
-	return t.datetimeval
+func (t TimeStr) Time() *time.Time {
+	if t.is_null {
+		return nil
+	}
+	return &t.datetimeval
 }
 
-func TimeStrFromStr(str string) (*TimeStr, error) {
-	newtimeval, err := time.Parse(time.DateTime, str)
+var ErrNullString = errors.New("nil pointer to string")
+
+func TimeStrFromStr(str *string) (*TimeStr, error) {
+	if str == nil {
+		return nil, fmt.Errorf("TimeStr error: failed to convert string to time.Time: %w", ErrNullString)
+	}
+	newtimeval, err := time.Parse(time.DateTime, *str)
 	if err != nil {
-		return nil, errors.New("TimeStr error: failed to convert string to time.Time")
+		return nil, fmt.Errorf("TimeStr error: failed to convert string to time.Time: %w", err)
 	}
 	return &TimeStr{
 		datetimeval: newtimeval,
-		stringval: str,
+		stringval: *str,
 	}, nil
 }
 

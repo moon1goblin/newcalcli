@@ -26,6 +26,8 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 			event_id INTEGER PRIMARY KEY
 			, event_name TEXT NOT NULL
 			, begin_datetime TEXT NOT NULL
+			, end_datetime TEXT
+			, event_type INTEGER
 		);
 		`,
 	); err != nil {

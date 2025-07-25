@@ -8,11 +8,22 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+type EventType int
+const (
+	// for testing
+	NilEvent EventType = iota
+	FullDayEvent
+	InstantEvent
+	WithDurationEvent
+)
+
 type Event struct {
 	// sometimes i use this sometimes i dont idk
 	Id int
 	Name string
 	Begin_time TimeStr
+	End_time *TimeStr
+	Type EventType
 }
 
 var ErrSqlite = errors.New("Sqlite error")
@@ -21,19 +32,24 @@ var ErrSqlite = errors.New("Sqlite error")
 func (event Event) Push(db_ptr *sql.DB) error {
 	_, err := db_ptr.Exec(
 		`
-		INSERT INTO main 
-		(event_name, begin_datetime) 
-		VALUES 
-		(?, ?);
+		INSERT INTO main(
+			event_name
+			, begin_datetime
+			, end_datetime
+			, event_type
+		) VALUES 
+		(?, ?, ?, ?);
 		`,
 		event.Name,
 		event.Begin_time.String(),
+		event.End_time.String(),
+		event.Type,
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to push event with name %s and begin_time %s: %w: %w",
 			event.Name,
-			event.Begin_time.String(),
+			*event.Begin_time.String(),
 			ErrSqlite,
 			err,
 		)

@@ -1,7 +1,6 @@
 package cmdshit
 
 import (
-	"calcli/dbshit"
 	"context"
 	"database/sql"
 	"errors"
@@ -22,6 +21,11 @@ var Cmd_new *cli.Command = &cli.Command{
 			Required: true,
 		},
 		&cli.StringFlag{
+			Name: "end",
+			Aliases: []string{"e"},
+			Required: false,
+		},
+		&cli.StringFlag{
 			Name: "name",
 			Aliases: []string{"n"},
 			Required: true,
@@ -33,15 +37,9 @@ var Cmd_new *cli.Command = &cli.Command{
 var ErrEventAlreadyExists = errors.New("newAction error: event already exists")
 
 func newAction(ctx context.Context, cmd *cli.Command) error {
-	// process dates somehow
-	p_begin_time, err := ProcessDate(cmd.String("begin"))
+	my_event, err := ProcessDates(cmd.String("name"), cmd.String("begin"), cmd.String("end"))
 	if err != nil {
 		return fmt.Errorf("newAction error: %w", err)
-	}
-
-	my_event := dbshit.Event{
-		Name: cmd.String("name"),
-		Begin_time: *p_begin_time,
 	}
 
 	// take the db_ptr out of the context (again idk wtf that is)
@@ -56,5 +54,7 @@ func newAction(ctx context.Context, cmd *cli.Command) error {
 	if err := my_event.Push(db_ptr); err != nil {
 		return fmt.Errorf("newAction error: %w", err)
 	}
+	fmt.Println("im here")
+
 	return nil
 }

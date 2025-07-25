@@ -2,6 +2,7 @@ package dbshit
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 
 	_ "modernc.org/sqlite"
@@ -64,25 +65,38 @@ func GetEventsInRange(begin *TimeStr, end *TimeStr, db_ptr *sql.DB) (*[]Event, e
 		}
 	}
 
-	var events []Event
-	var begin_dummy_str string
+	var(
+		events []Event
+		begin_dummy_str *string
+		end_dummy_str *string
+	)
 
 	for rows.Next() {
 		new_event := Event{}
 
+		// FIXME: i read the src code comments and apparently
+		// fucking apparently you can scan directly into fucking *time.Time????
+		// TODO: fucking simplify everything with that knowledge???
 		if err := rows.Scan(
 			&new_event.Id,
 			&new_event.Name,
 			&begin_dummy_str,
+			&end_dummy_str,
+			&new_event.Type,
 		); err != nil {
-			return &events, err
+			return &events, fmt.Errorf("GetEventsInRange error while scanning rows: %w: %w", ErrSqlite, err)
 		}
 
-		timestr, err := TimeStrFromStr(begin_dummy_str)
-		if err != nil {
+		if begin_timestr, err := TimeStrFromStr(begin_dummy_str); err != nil {
 			return nil, fmt.Errorf("GetEventsInRange error while scanning rows: %w", err)
+		} else {
+			new_event.Begin_time = *begin_timestr
 		}
-		new_event.Begin_time = *timestr
+		if end_timestr, err := TimeStrFromStr(end_dummy_str); !errors.Is(err, ErrNullString) && err != nil {
+			return nil, fmt.Errorf("GetEventsInRange error while scanning rows: %w", err)
+		} else {
+			new_event.End_time = end_timestr
+		}
 
 		// i couldnt figure out how to get the row count
 		// just allocate enough events right away
