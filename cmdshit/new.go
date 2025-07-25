@@ -2,9 +2,10 @@ package cmdshit
 
 import (
 	"calcli/dbshit"
-	"database/sql"
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"
@@ -12,7 +13,7 @@ import (
 
 var Cmd_new *cli.Command = &cli.Command{
 	Name: "new",
-	// FIXME: flags think their values are only the first word :(
+	// TODO: flags think their values are only the first word :(
 	// so like "-n im batman"'s value is im
 	Flags: []cli.Flag{
 		&cli.StringFlag{
@@ -29,11 +30,13 @@ var Cmd_new *cli.Command = &cli.Command{
 	Action: newAction,
 }
 
+var ErrEventAlreadyExists = errors.New("newAction error: event already exists")
+
 func newAction(ctx context.Context, cmd *cli.Command) error {
 	// process dates somehow
 	p_begin_time, err := processDate(cmd.String("begin"))
 	if err != nil {
-		return err
+		return fmt.Errorf("newAction error: %w", err)
 	}
 
 	my_event := dbshit.Event{
@@ -44,16 +47,14 @@ func newAction(ctx context.Context, cmd *cli.Command) error {
 	// take the db_ptr out of the context (again idk wtf that is)
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
-	found, err := my_event.Find(db_ptr)
-	if err != nil {
-		return err
-	}
-	if found {
-		return errors.New("newAction error: event already exists")
+	if found, err := my_event.Find(db_ptr); err != nil {
+		return fmt.Errorf("newAction error: %w", err)
+	} else if found {
+		return ErrEventAlreadyExists
 	}
 
 	if err := my_event.Push(db_ptr); err != nil {
-		return err
+		return fmt.Errorf("newAction error: %w", err)
 	}
 	return nil
 }

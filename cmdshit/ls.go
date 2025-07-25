@@ -2,9 +2,9 @@ package cmdshit
 
 import (
 	"calcli/dbshit"
-	"database/sql"
 	"context"
-	"time"
+	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/urfave/cli/v3"
@@ -32,19 +32,13 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 	// process dates
-	var(
-		begin_time *time.Time
-		end_time *time.Time
-		err error
-	)
-
-	if begin_time, err = processDate(cmd.String("begin")); err != nil && 
-		err.Error() != "processDate error: empty string" {
-		return err
+	begin_time, err := processDate(cmd.String("begin"))
+	if err != nil && !errors.Is(err, ErrEmptyString) {
+		return fmt.Errorf("lsAction error on begin flag: %w", err)
 	}
-	if end_time, err = processDate(cmd.String("end")); err != nil && 
-		err.Error() != "processDate error: empty string" {
-		return err
+	end_time, err := processDate(cmd.String("begin"))
+	if err != nil && !errors.Is(err, ErrEmptyString) {
+		return fmt.Errorf("lsAction error on end flag: %w", err)
 	}
 
 	// get sorted events in range [begin, end)

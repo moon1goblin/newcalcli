@@ -1,22 +1,28 @@
 package cmdshit
 
 import (
-	"strings"
-	"strconv"
+	"calcli/dbshit"
 	"errors"
+	"fmt"
 	"slices"
+	"strconv"
+	"strings"
 	"time"
 )
 
 var delimiters = []rune{':', ' ', '.', '/', '-'}
 
-// TODO: make better error wrappers bruh
+var(
+	ErrEmptyString = errors.New("processDate error: empty string")
+	ErrInvalidDateTime = errors.New("processDate error: invalid datetime")
+	ErrNoDayAndMonth = errors.New("processDate error: date must have day and month")
+)
 
 // can return nil if err
-func processDate(time_str string) (*time.Time, error) {
+func processDate(time_str string) (*dbshit.TimeStr, error) {
 	// empty string check
 	if time_str == "" {
-		return nil, errors.New("processDate error: empty string")
+		return nil, ErrEmptyString
 	}
 
 	// day month hour minute
@@ -28,16 +34,17 @@ func processDate(time_str string) (*time.Time, error) {
 	cur_datetime_value := 0
 
 	proccessLastSlice := func() error {
-		if !last_value_was_delimiter {
-			if datetimevalues[cur_datetime_value], err = strconv.Atoi(builder.String()); err != nil {
-				// TODO:
-				// add ability to type months like jan or January instead of 1 here
-				// so like if err check if its a valid month and have it that way
-				return errors.New("processDate error: invalid datetime")
-			}
-			cur_datetime_value++
-			builder.Reset()
+		if last_value_was_delimiter {
+			return nil
 		}
+		if datetimevalues[cur_datetime_value], err = strconv.Atoi(builder.String()); err != nil {
+			// TODO:
+			// add ability to type months like jan or January instead of 1 here
+			// so like if err check if its a valid month and have it that way
+			return fmt.Errorf("%w on string %s", ErrInvalidDateTime, time_str)
+		}
+		cur_datetime_value++
+		builder.Reset()
 		return nil
 	}
 
@@ -45,12 +52,12 @@ func processDate(time_str string) (*time.Time, error) {
 		if !slices.Contains(delimiters, value) {
 			builder.WriteRune(value)
 			last_value_was_delimiter = false
-		} else {
-			if err := proccessLastSlice(); err != nil {
-				return nil, err
-			}
-			last_value_was_delimiter = true
+			continue
 		}
+		if err := proccessLastSlice(); err != nil {
+			return nil, err
+		}
+		last_value_was_delimiter = true
 	}
 	// process the last one
 	if err := proccessLastSlice(); err != nil {
@@ -58,21 +65,22 @@ func processDate(time_str string) (*time.Time, error) {
 	}
 
 	// if no month and day we dont like that
-	if datetimevalues[0] == 0 && datetimevalues[1] == 0 {
-		return nil, errors.New("processDate error: date must have day and month")
+	if cur_datetime_value <= 1  {
+		return nil, fmt.Errorf("%w on string %s", ErrNoDayAndMonth, time_str)
 	}
 
 	datetime := time.Date(
+		// TODO: add year somehow
 		time.Now().Year(),
-		// can i do this?
 		time.Month(datetimevalues[1]),
 		datetimevalues[0],
 		datetimevalues[2],
 		datetimevalues[3],
+		// fuck seconds and ms
 		0,
 		0,
 		time.Now().Location(),
 	)
 
-	return &datetime, nil
+	return dbshit.TimeStrFromTime(datetime), nil
 }

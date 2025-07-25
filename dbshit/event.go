@@ -1,9 +1,9 @@
 package dbshit
 
-import(
+import (
 	"database/sql"
 	"errors"
-	"time"
+	"fmt"
 
 	_ "modernc.org/sqlite"
 )
@@ -12,8 +12,10 @@ type Event struct {
 	// sometimes i use this sometimes i dont idk
 	Id int
 	Name string
-	Begin_time time.Time
+	Begin_time TimeStr
 }
+
+var ErrSqlite = errors.New("Sqlite error")
 
 // insert event into db
 func (event Event) Push(db_ptr *sql.DB) error {
@@ -25,8 +27,17 @@ func (event Event) Push(db_ptr *sql.DB) error {
 		(?, ?);
 		`,
 		event.Name,
-		event.Begin_time.Format(time.DateTime),
+		event.Begin_time.String(),
 	)
+	if err != nil {
+		return fmt.Errorf(
+			"failed to push event with name %s and begin_time %s: %w: %w",
+			event.Name,
+			event.Begin_time.String(),
+			ErrSqlite,
+			err,
+		)
+	}
 	return err
 }
 
@@ -41,10 +52,10 @@ func (event Event) Find(db_ptr *sql.DB) (bool, error) {
 		AND begin_datetime=?
 		`,
 		event.Name,
-		event.Begin_time.Format(time.DateTime),
+		event.Begin_time.String(),
 	)
 	if err != nil {
-		return false, errors.New("(Event) Find error: " + err.Error())
+		return false, fmt.Errorf("Event Find error: %w: %w", ErrSqlite, err)
 	}
 
 	found := false
