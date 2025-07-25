@@ -3,6 +3,7 @@ package cmdshit_test
 import (
 	"calcli/cmdshit"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -36,8 +37,8 @@ func TestTimeFromStr(t *testing.T) {
 			assert := assert.New(t)
 			res, onlydate, err := cmdshit.TimeFromStr(tc.Time_str)
 
-			if res != nil {
-				assert.Equal(*res.String(), tc.ExpectedRes)
+			if res.Valid {
+				assert.Equal(res.Time.Format(time.DateTime), tc.ExpectedRes)
 				assert.Equal(onlydate, tc.ExpectedWasOnlyDate)
 			}
 			assert.ErrorIs(err, tc.ExpectedErr)

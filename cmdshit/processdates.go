@@ -8,7 +8,6 @@ import(
 
 var(
 	ErrInvalidBeginEndCombo = errors.New("invalid begin/end combination")
-	ErrInvalidDateTime = errors.New("invalid datetime")
 	ErrEndBeforeBegin = errors.New("end before begin")
 )
 
@@ -37,7 +36,7 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 	}
 
 	// chronological order check
-	if p_end_time != nil && p_end_time.Time().Before(*p_begin_time.Time()) {
+	if p_end_time.Valid && p_end_time.Time.Before(p_begin_time.Time) {
 		return nil, fmt.Errorf(
 			"ProcessDates error with begin_datetime %s and end_datetime %s: %w",
 			begin_datetime_str,
@@ -49,9 +48,9 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 	var my_event_type dbshit.EventType
 
 	// fuck this logic it was a pain to write
-	if onlydate_begin && (p_end_time == nil || onlydate_end) {
+	if onlydate_begin && (!p_end_time.Valid || onlydate_end) {
 		my_event_type = dbshit.FullDayEvent
-	} else if !onlydate_begin && p_end_time == nil {
+	} else if !onlydate_begin && !p_end_time.Valid {
 		my_event_type = dbshit.InstantEvent
 	} else if !onlydate_begin && !onlydate_end {
 		my_event_type = dbshit.WithDurationEvent
@@ -66,7 +65,7 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 
 	return &dbshit.Event{
 		Name: event_name_str,
-		Begin_time: *p_begin_time,
+		Begin_time: p_begin_time.Time,
 		End_time: p_end_time,
 		Type: my_event_type,
 	}, nil

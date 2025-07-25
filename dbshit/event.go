@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
@@ -21,8 +22,9 @@ type Event struct {
 	// sometimes i use this sometimes i dont idk
 	Id int
 	Name string
-	Begin_time TimeStr
-	End_time *TimeStr
+	Begin_time time.Time
+	// TODO: find an optinal<T> analog package for golang or something, this is atrocious
+	End_time sql.NullTime
 	Type EventType
 }
 
@@ -41,15 +43,23 @@ func (event Event) Push(db_ptr *sql.DB) error {
 		(?, ?, ?, ?);
 		`,
 		event.Name,
-		event.Begin_time.String(),
-		event.End_time.String(),
+		event.Begin_time.Unix(),
+		func() *int64 { 
+			if event.End_time.Valid {
+				// cant take addres of return value
+				// long live the garbage collector
+				hi := event.End_time.Time.Unix()
+				return &hi
+			}
+			return nil
+		}(),
 		event.Type,
 	)
 	if err != nil {
 		return fmt.Errorf(
 			"failed to push event with name %s and begin_time %s: %w: %w",
 			event.Name,
-			*event.Begin_time.String(),
+			event.Begin_time.String(),
 			ErrSqlite,
 			err,
 		)

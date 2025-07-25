@@ -57,18 +57,18 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 	if events == nil {
 		return nil
 	}
-	get_str_from_potentially_null_time_longassnameik := func(str_ptr *string) string {
-		if str_ptr == nil {
-			return "null vim btw"
-		}
-		return *str_ptr
-	}
+
 	for _, event := range *events {
 		fmt.Println(
 			event.Id,
 			event.Name,
-			*event.Begin_time.String(),
-			get_str_from_potentially_null_time_longassnameik(event.End_time.String()),
+			event.Begin_time.String(),
+			func() string {
+				if event.End_time.Valid {
+					return event.End_time.Time.String()
+				}
+				return "null"
+			}(),
 			event.Type,
 		)
 	}

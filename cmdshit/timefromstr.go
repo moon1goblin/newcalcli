@@ -1,7 +1,7 @@
 package cmdshit
 
 import (
-	"calcli/dbshit"
+	"database/sql"
 	"errors"
 	"fmt"
 	"slices"
@@ -13,16 +13,17 @@ import (
 var(
 	ErrEmptyString = errors.New("empty string")
 	ErrNoDayAndMonth = errors.New("date must have day and month")
+	ErrInvalidDateTime = errors.New("invalid datetime")
 )
 
 // TODO: add event types (fullday, instant, withduration)
 
 // can return nil if err
 // bool true when there was only a date and no time
-func TimeFromStr(time_str string) (*dbshit.TimeStr, bool, error) {
+func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 	// empty string check
 	if time_str == "" {
-		return nil, false, fmt.Errorf("TimeFromStr error: %w", ErrEmptyString)
+		return sql.NullTime{}, false, fmt.Errorf("TimeFromStr error: %w", ErrEmptyString)
 	}
 
 	// day month hour minute
@@ -65,20 +66,20 @@ func TimeFromStr(time_str string) (*dbshit.TimeStr, bool, error) {
 			continue
 		}
 		if err := proccessLastSlice(); err != nil {
-			return nil, false, err
+			return sql.NullTime{}, false, err
 		}
 		last_value_was_delimiter = true
 	}
 	// process the last one
 	if err := proccessLastSlice(); err != nil {
-		return nil, false, err
+		return sql.NullTime{}, false, err
 	}
 
 	only_date_no_time := false
 
 	// if no month and day we dont like that
 	if cur_datetime_value <= 1  {
-		return nil, false, fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrNoDayAndMonth)
+		return sql.NullTime{}, false, fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrNoDayAndMonth)
 	} else if cur_datetime_value == 2 {
 		only_date_no_time = true
 	}
@@ -100,7 +101,7 @@ func TimeFromStr(time_str string) (*dbshit.TimeStr, bool, error) {
 		time.Now().Location(),
 	)
 
-	return dbshit.TimeStrFromTime(datetime), only_date_no_time, nil
+	return sql.NullTime{Time: datetime, Valid: true}, only_date_no_time, nil
 }
 
 var delimiters = []rune{':', ' ', '.', '/', '-'}
