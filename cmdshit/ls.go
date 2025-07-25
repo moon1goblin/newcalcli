@@ -11,6 +11,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// TODO: dislpay events prettier
+
 var Cmd_ls *cli.Command = &cli.Command{
 	Name: "ls",
 	Flags: []cli.Flag{
@@ -32,11 +34,11 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 	// process dates
-	begin_time, err := processDate(cmd.String("begin"))
+	begin_time, err := ProcessDate(cmd.String("begin"))
 	if err != nil && !errors.Is(err, ErrEmptyString) {
 		return fmt.Errorf("lsAction error on begin flag: %w", err)
 	}
-	end_time, err := processDate(cmd.String("begin"))
+	end_time, err := ProcessDate(cmd.String("begin"))
 	if err != nil && !errors.Is(err, ErrEmptyString) {
 		return fmt.Errorf("lsAction error on end flag: %w", err)
 	}

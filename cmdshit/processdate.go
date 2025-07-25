@@ -12,37 +12,108 @@ import (
 
 var delimiters = []rune{':', ' ', '.', '/', '-'}
 
+// did this manually so i have more control := (= are tears)
+var months = map[string]int {
+	"January": 1,
+	"Jan": 1,
+	"january": 1,
+	"jan": 1,
+
+	"February": 2,
+	"Feb": 2,
+	"february": 2,
+	"feb": 2,
+
+	"March": 3,
+	"Mar": 3,
+	"march": 3,
+	"mar": 3,
+
+	"April": 4,
+	"Apr": 4,
+	"april": 4,
+	"apr": 4,
+
+	"May": 5,
+	"may": 5,
+
+	"June": 6,
+	"Jun": 6,
+	"june": 6,
+	"jun": 6,
+
+	"July": 7,
+	"Jul": 7,
+	"july": 7,
+	"jul": 7,
+
+	"August": 8,
+	"Aug": 8,
+	"august": 8,
+	"aug": 8,
+
+	"September": 9,
+	"Sep": 9,
+	"september": 9,
+	"sep": 9,
+
+	"October": 10,
+	"Oct": 10,
+	"october": 10,
+	"oct": 10,
+
+	"November": 11,
+	"Nov": 11,
+	"november": 11,
+	"nov": 11,
+
+	"December": 12,
+	"Dec": 12,
+	"december": 12,
+	"dec": 12,
+}
+
 var(
-	ErrEmptyString = errors.New("processDate error: empty string")
-	ErrInvalidDateTime = errors.New("processDate error: invalid datetime")
-	ErrNoDayAndMonth = errors.New("processDate error: date must have day and month")
+	ErrEmptyString = errors.New("empty string")
+	ErrInvalidDateTime = errors.New("invalid datetime")
+	ErrNoDayAndMonth = errors.New("date must have day and month")
 )
 
+// TODO: add event types (fullday, instant, withduration)
+
 // can return nil if err
-func processDate(time_str string) (*dbshit.TimeStr, error) {
+func ProcessDate(time_str string) (*dbshit.TimeStr, error) {
 	// empty string check
 	if time_str == "" {
-		return nil, ErrEmptyString
+		return nil, fmt.Errorf("ProcessDate error: %w", ErrEmptyString)
 	}
 
 	// day month hour minute
 	datetimevalues := [4]int{}
 
-	last_value_was_delimiter := false
+	last_value_was_delimiter := true
 	var builder strings.Builder
-	var err error
 	cur_datetime_value := 0
+	monthwasfirst := false
 
 	proccessLastSlice := func() error {
 		if last_value_was_delimiter {
 			return nil
 		}
-		if datetimevalues[cur_datetime_value], err = strconv.Atoi(builder.String()); err != nil {
-			// TODO:
-			// add ability to type months like jan or January instead of 1 here
-			// so like if err check if its a valid month and have it that way
-			return fmt.Errorf("%w on string %s", ErrInvalidDateTime, time_str)
+		var (
+			val int
+			is_in_map bool
+			err error
+		)
+		if val, is_in_map = months[builder.String()]; is_in_map {
+			if cur_datetime_value == 0 {
+				monthwasfirst = true
+			}
+		} else if val, err = strconv.Atoi(builder.String()); err != nil || val == 0 {
+			return fmt.Errorf("ProcessDate error on string %s: %w", time_str, ErrInvalidDateTime)
 		}
+
+		datetimevalues[cur_datetime_value] = val
 		cur_datetime_value++
 		builder.Reset()
 		return nil
@@ -66,7 +137,11 @@ func processDate(time_str string) (*dbshit.TimeStr, error) {
 
 	// if no month and day we dont like that
 	if cur_datetime_value <= 1  {
-		return nil, fmt.Errorf("%w on string %s", ErrNoDayAndMonth, time_str)
+		return nil, fmt.Errorf("ProcessDate error on string %s: %w", time_str, ErrNoDayAndMonth)
+	}
+
+	if monthwasfirst {
+		datetimevalues[0], datetimevalues[1] = datetimevalues[1], datetimevalues[0]
 	}
 
 	datetime := time.Date(

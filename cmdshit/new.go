@@ -34,7 +34,7 @@ var ErrEventAlreadyExists = errors.New("newAction error: event already exists")
 
 func newAction(ctx context.Context, cmd *cli.Command) error {
 	// process dates somehow
-	p_begin_time, err := processDate(cmd.String("begin"))
+	p_begin_time, err := ProcessDate(cmd.String("begin"))
 	if err != nil {
 		return fmt.Errorf("newAction error: %w", err)
 	}
