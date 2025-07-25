@@ -1,8 +1,10 @@
 package cmdshit
 
 import (
-	"database/sql"
+	"calcli/dbshit"
 	"context"
+	"fmt"
+	"database/sql"
 
 	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"
@@ -11,7 +13,7 @@ import (
 var Cmd_rm *cli.Command = &cli.Command{
 	Name: "rm",
 	Flags: []cli.Flag{
-		&cli.StringFlag{
+		&cli.Int64Flag{
 			Name: "id",
 			Required: true,
 		},
@@ -37,14 +39,8 @@ var Cmd_rm *cli.Command = &cli.Command{
 func rmAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
-	if _, err := db_ptr.Exec(
-		`
-		DELETE FROM main 
-		WHERE event_id=?;
-		`,
-		cmd.String("id"),
-	); err != nil {
-		return err
+	if err := dbshit.DeleteById(cmd.Int("id"), db_ptr); err != nil {
+		return fmt.Errorf("rmAction: failed to delete by id: %w", err)
 	}
 
 	return nil

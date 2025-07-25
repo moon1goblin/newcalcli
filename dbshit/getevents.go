@@ -1,8 +1,6 @@
-// this file needs a more descriptive name
-
 package dbshit
 
-import (
+import(
 	"database/sql"
 	"errors"
 	"time"
