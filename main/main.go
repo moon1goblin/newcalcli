@@ -40,6 +40,8 @@ func main() {
 		},
 	}
 
+	// TODO: prettify error messages, they look mad ugly
+
 	if err := cmds.Run(context.Background(), os.Args); err != nil {
 		log.Fatal(err)
 	}

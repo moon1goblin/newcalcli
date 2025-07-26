@@ -11,8 +11,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// TODO: dislpay events prettier
-
 var Cmd_ls *cli.Command = &cli.Command{
 	Name: "ls",
 	Flags: []cli.Flag{
@@ -29,6 +27,8 @@ var Cmd_ls *cli.Command = &cli.Command{
 	},
 	Action: lsAction,
 }
+
+// TODO: wrap the actions into separate functions so i can use them for the tui
 
 func lsAction(ctx context.Context, cmd *cli.Command) error {
 	db_ptr := ctx.Value("db_ptr").(*sql.DB)

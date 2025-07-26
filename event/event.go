@@ -76,9 +76,19 @@ func (event Event) Find(db_ptr *sql.DB) (bool, error) {
 		SELECT * FROM main 
 		WHERE event_name=? 
 		AND begin_datetime=?
+		AND end_datetime=?
+		AND event_type=?
 		`,
 		event.Name,
-		event.Begin_time.String(),
+		event.Begin_time.Unix(),
+		func() *int64 {
+			if event.End_time.Valid {
+				str := event.End_time.Time.Unix()
+				return &str
+			}
+			return nil
+		}(),
+		event.Type,
 	)
 	if err != nil {
 		return false, fmt.Errorf("Event Find error: %w: %w", ErrSqlite, err)

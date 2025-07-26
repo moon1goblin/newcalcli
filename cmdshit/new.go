@@ -51,6 +51,13 @@ func newAction(ctx context.Context, cmd *cli.Command) error {
 		return ErrEventAlreadyExists
 	}
 
+	fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
+	if confirmed, err := ConfirmYNPrompt(); err != nil {
+		return fmt.Errorf("newAction error while confirming event: %w", err)
+	} else if !confirmed {
+		return nil
+	}
+
 	if err := my_event.Push(db_ptr); err != nil {
 		return fmt.Errorf("newAction error: %w", err)
 	}
