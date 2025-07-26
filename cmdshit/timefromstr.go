@@ -16,8 +16,6 @@ var(
 	ErrInvalidDateTime = errors.New("invalid datetime")
 )
 
-// TODO: add event types (fullday, instant, withduration)
-
 // can return nil if err
 // bool true when there was only a date and no time
 func TimeFromStr(time_str string) (sql.NullTime, bool, error) {

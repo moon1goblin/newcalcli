@@ -1,7 +1,7 @@
 package cmdshit
 
 import (
-	"calcli/dbshit"
+	"calcli/event"
 	"context"
 	"database/sql"
 	"errors"
@@ -44,7 +44,7 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 	}
 
 	// get sorted events in range [begin, end)
-	events, err := dbshit.GetEventsInRange(
+	events, err := event.GetEventsInRange(
 		begin_time,
 		end_time,
 		db_ptr,
@@ -53,25 +53,7 @@ func lsAction(ctx context.Context, cmd *cli.Command) error {
 		return fmt.Errorf("lsAction error: %w", err)
 	}
 
-	// dereferencing nil ptr is ub i think haha
-	if events == nil {
-		return nil
-	}
-
-	for _, event := range *events {
-		fmt.Println(
-			event.Id,
-			event.Name,
-			event.Begin_time.String(),
-			func() string {
-				if event.End_time.Valid {
-					return event.End_time.Time.String()
-				}
-				return "null"
-			}(),
-			event.Type,
-		)
-	}
+	fmt.Print(event.PrintEvents(events))
 
 	return nil
 }

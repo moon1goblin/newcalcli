@@ -1,7 +1,7 @@
 package cmdshit
 
 import (
-	"calcli/dbshit"
+	"calcli/event"
 	"context"
 	"database/sql"
 	"fmt"
@@ -46,7 +46,7 @@ func rmAction(ctx context.Context, cmd *cli.Command) error {
 		`,
 		cmd.Int64("id"),
 	); err != nil {
-		return fmt.Errorf("rmAction: failed to delete by id: %w: %w", dbshit.ErrSqlite, err)
+		return fmt.Errorf("rmAction: failed to delete by id: %w: %w", event.ErrSqlite, err)
 	}
 
 	return nil

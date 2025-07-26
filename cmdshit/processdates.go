@@ -1,7 +1,7 @@
 package cmdshit
 
 import(
-	"calcli/dbshit"
+	"calcli/event"
 	"errors"
 	"fmt"
 )
@@ -11,7 +11,7 @@ var(
 	ErrEndBeforeBegin = errors.New("end before begin")
 )
 
-func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (*dbshit.Event, error) {
+func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (*event.Event, error) {
 	p_end_time, onlydate_end, err_end := TimeFromStr(end_datetime_str)
 	if errors.Is(err_end, ErrEmptyString) {
 		// end can be null
@@ -45,15 +45,15 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 		)
 	}
 
-	var my_event_type dbshit.EventType
+	var my_event_type event.EventType
 
 	// fuck this logic it was a pain to write
 	if onlydate_begin && (!p_end_time.Valid || onlydate_end) {
-		my_event_type = dbshit.FullDayEvent
+		my_event_type = event.FullDayEvent
 	} else if !onlydate_begin && !p_end_time.Valid {
-		my_event_type = dbshit.InstantEvent
+		my_event_type = event.InstantEvent
 	} else if !onlydate_begin && !onlydate_end {
-		my_event_type = dbshit.WithDurationEvent
+		my_event_type = event.WithDurationEvent
 	} else {
 		return nil, fmt.Errorf(
 			"ProcessDates error with begin_datetime %s and end_datetime %s: %w",
@@ -63,7 +63,7 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 		)
 	}
 
-	return &dbshit.Event{
+	return &event.Event{
 		Name: event_name_str,
 		Begin_time: p_begin_time.Time,
 		End_time: p_end_time,

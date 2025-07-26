@@ -1,7 +1,7 @@
 package cmdshit
 
 import (
-	"calcli/dbshit"
+	"calcli/event"
 	"database/sql"
 	"fmt"
 
@@ -33,7 +33,7 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 		);
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create db: %w: %w", dbshit.ErrSqlite, err)
+		return fmt.Errorf("initAction: failed to create db: %w: %w", event.ErrSqlite, err)
 	}
 
 	// create a sorted view for the table
@@ -45,7 +45,7 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 		SELECT * FROM main ORDER BY begin_datetime ASC;
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create a sorted view in db: %w: %w", dbshit.ErrSqlite, err)
+		return fmt.Errorf("initAction: failed to create a sorted view in db: %w: %w", event.ErrSqlite, err)
 	}
 
 	return nil

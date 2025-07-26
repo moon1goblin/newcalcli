@@ -62,3 +62,14 @@ should print what it found and ask for conformation (-y to bypass and confirm au
 should have a trash bin so we can do backsies 
 delete trash after a week or something
 or delete forever -f flag, then the event wouldnt go in the bin just straight up deleted
+
+## printing events
+what about this
+
+sat 26 july
+dog bday
+12:30-15:00 lunch idk
+13:45 get fucked
+
+mon 28 july
+go shopping

@@ -54,7 +54,6 @@ func newAction(ctx context.Context, cmd *cli.Command) error {
 	if err := my_event.Push(db_ptr); err != nil {
 		return fmt.Errorf("newAction error: %w", err)
 	}
-	fmt.Println("im here")
 
 	return nil
 }
