@@ -4,9 +4,7 @@ import (
 	"calcli/cal"
 	"context"
 	"database/sql"
-	"fmt"
-
-	// "log"
+	"log"
 	"os"
 
 	"github.com/urfave/cli/v3"
@@ -14,8 +12,9 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// TODO: just fucking call init here and set db_ptr
-// so like, make it global in the packages and just set it here
+// TODO: make db_ptr a global variable
+// so i dont have to get it out of context
+// and to pass it to functions every time
 
 func main() {
 	cmds := &cli.Command{
@@ -52,7 +51,6 @@ func main() {
 	}
 
 	if err := cmds.Run(context.Background(), os.Args); err != nil {
-		// log.Fatal(err)
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 }

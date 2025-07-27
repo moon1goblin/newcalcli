@@ -127,6 +127,7 @@ func (event Event) Push(db_ptr *sql.DB) error {
 
 // true if event exists in db, false otherwise duh
 // id is not needed
+// FIXME: this broke for some reason
 func (event Event) Find(db_ptr *sql.DB) (bool, error) {
 	var count int
 	if err := db_ptr.QueryRow(

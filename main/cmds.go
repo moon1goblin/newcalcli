@@ -43,7 +43,6 @@ var (
 				return fmt.Errorf("error on command new: %w", err)
 			}
 
-			// FIXME: broke on -b 15/04
 			fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
 			if confirmed, err := ConfirmYNPrompt(); err != nil {
 				return fmt.Errorf("error on command new: %w", err)

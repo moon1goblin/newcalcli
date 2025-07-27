@@ -1,4 +1,4 @@
-package cal
+package cal_test
 
 import (
 	"calcli/cal"
@@ -71,6 +71,10 @@ var timeFromStrTestcases = []struct{
 	{"whitespace first", " 9 10", "2025-10-09 00:00:00", true, nil},
 	{"zeros in time", "9.08 00:00", "2025-08-09 00:00:00", false, nil},
 }
+
+// FIXME: figure out how to run just one test from here
+// because the function were testing here
+// depends on the function we tested earlier in this file
 
 func TestTimeFromStr(t *testing.T) {
 	for _, tc := range timeFromStrTestcases {

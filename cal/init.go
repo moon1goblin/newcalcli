@@ -6,7 +6,6 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-// TODO: just fucking make db_ptr a global variable
 func InitDB(db_ptr *sql.DB) error {
 	// TODO: because were storing time in seconds since Epoch
 	// store timezone too so when switching itd stay the same?
