@@ -1,25 +1,13 @@
-package cmdshit
+package cal
 
 import (
-	"calcli/event"
 	"database/sql"
 	"fmt"
-
-	"context"
-
-	"github.com/urfave/cli/v3"
 	_ "modernc.org/sqlite"
 )
 
-var Cmd_init *cli.Command = &cli.Command{
-	Name: "init",
-	Action: initAction,
-}
-
-func initAction(ctx context.Context, cmd *cli.Command) error {
-	// take the db_ptr out of the context (again idk wtf that is)
-	db_ptr := ctx.Value("db_ptr").(*sql.DB)
-
+// TODO: just fucking make db_ptr a global variable
+func InitDB(db_ptr *sql.DB) error {
 	// TODO: because were storing time in seconds since Epoch
 	// store timezone too so when switching itd stay the same?
 	if _, err := db_ptr.Exec(
@@ -33,7 +21,7 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 		);
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create db: %w: %w", event.ErrSqlite, err)
+		return fmt.Errorf("initAction: failed to create db: %w: %w", ErrSqlite, err)
 	}
 
 	// create a sorted view for the table
@@ -45,8 +33,7 @@ func initAction(ctx context.Context, cmd *cli.Command) error {
 		SELECT * FROM main ORDER BY begin_datetime ASC;
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create a sorted view in db: %w: %w", event.ErrSqlite, err)
+		return fmt.Errorf("initAction: failed to create a sorted view in db: %w: %w", ErrSqlite, err)
 	}
-
 	return nil
 }

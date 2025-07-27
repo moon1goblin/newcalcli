@@ -1,55 +1,19 @@
-package event
+package main
 
 import (
-	"strings"
-	"time"
+	"calcli/cal"
 	"container/list"
+	"errors"
+	"fmt"
+	"strings"
+	"os"
+	"golang.org/x/term"
 )
-
-func isSameDate(lhs, rhs time.Time) bool {
-	ly, lm, ld := lhs.Date()
-	ry, rm, rd := rhs.Date()
-	return ld == rd && lm == rm && ly == ry
-}
-
-func (event Event) String(withdate bool) string {
-	var builder strings.Builder
-
-	var begin_format string
-	var end_format string
-
-	if withdate {
-		begin_format = "01.02.2006 15:04"
-	} else {
-		begin_format = "15:04"
-	}
-	if event.End_time.Valid && isSameDate(event.Begin_time, event.End_time.Time) {
-		end_format = "15:04"
-	} else {
-		end_format = begin_format
-	}
-
-	switch event.Type {
-	case FullDayEvent:
-	case InstantEvent:
-		builder.WriteString(event.Begin_time.Format(begin_format))
-		builder.WriteString(" ")
-	case WithDurationEvent:
-		builder.WriteString(event.Begin_time.Format(begin_format))
-		builder.WriteString("-")
-		builder.WriteString(event.End_time.Time.Format(end_format))
-		builder.WriteString(" ")
-	}
-
-	builder.WriteString(event.Name)
-
-	return builder.String()
-}
 
 // TODO: center events to the right edge of their time
 
 // accepts SORTED array
-func PrintEvents(events *[]Event) string {
+func PrintEvents(events *[]cal.Event) string {
 	if events == nil {
 		return ""
 	}
@@ -61,7 +25,7 @@ func PrintEvents(events *[]Event) string {
 	)
 
 	for _, cur_event := range *events {
-		if cur_event.Type == FullDayEvent {
+		if cur_event.Type == cal.FullDayEvent {
 			multiple_day_full_day_events.PushBack(cur_event)
 		}
 		if cur_date := cur_event.Begin_time.Format("Mon 2 Jan"); cur_date != last_date {
@@ -75,6 +39,7 @@ func PrintEvents(events *[]Event) string {
 			builder.WriteString("\n")
 
 			// FIXME: multiple day event printing
+
 			// // so we can have multiple day full day events duh
 			// for elem := multiple_day_full_day_events.Front(); elem != nil; elem = elem.Next() {
 			// 	if cur_fd_event, ok := elem.Value.(*Event); ok {
@@ -91,4 +56,31 @@ func PrintEvents(events *[]Event) string {
 	}
 
 	return builder.String()
+}
+
+// ------------------------------------------------------------------------------
+
+var ErrYNPrompt = errors.New("y/n prompt error")
+
+// so basically anything other than y or Y is false, good design hello
+func ConfirmYNPrompt() (bool, error) {
+	// stty into raw mode so we dont have to press enter
+	oldState, err := term.MakeRaw(int(os.Stdin.Fd()))
+	if err != nil {
+		return false, fmt.Errorf("ConfirmYNPrompt error setting terminal into raw mode: %w", err)
+	}
+	defer term.Restore(int(os.Stdin.Fd()), oldState)
+
+	input := make([]byte, 1)
+	if bytes_read, err := os.Stdin.Read(input); err != nil || bytes_read != 1 {
+		return false, fmt.Errorf("ConfirmYNPrompt error reading char from stdin: %w", err)
+	}
+
+	fmt.Printf("%c", input[0])
+
+	if input[0] == 'y' || input[0] == 'Y' {
+		return true, nil
+	} else {
+		return false, nil
+	}
 }

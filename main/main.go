@@ -1,16 +1,21 @@
 package main
 
 import (
-	"calcli/cmdshit"
-
-	"database/sql"
+	"calcli/cal"
 	"context"
-	"log"
+	"database/sql"
+	"fmt"
+
+	// "log"
 	"os"
 
-	_ "modernc.org/sqlite"
 	"github.com/urfave/cli/v3"
+
+	_ "modernc.org/sqlite"
 )
+
+// TODO: just fucking call init here and set db_ptr
+// so like, make it global in the packages and just set it here
 
 func main() {
 	cmds := &cli.Command{
@@ -19,8 +24,15 @@ func main() {
 		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
 			// connect to sqlite instance
 			db_ptr, err := sql.Open("sqlite", "db")
+			if err != nil {
+				return ctx, err
+			}
 			ctx = context.WithValue(ctx, "db_ptr", db_ptr)
-			return ctx, err
+
+			if err := cal.InitDB(db_ptr); err != nil {
+				return ctx, err
+			}
+			return ctx, nil
 		},
 
 		After: func(ctx context.Context, _ *cli.Command) error {
@@ -33,16 +45,14 @@ func main() {
 		},
 
 		Commands: []*cli.Command{
-			cmdshit.Cmd_new,
-			cmdshit.Cmd_ls,
-			cmdshit.Cmd_init,
-			cmdshit.Cmd_rm,
+			Command_new,
+			Command_ls,
+			Command_rm,
 		},
 	}
 
-	// TODO: prettify error messages, they look mad ugly
-
 	if err := cmds.Run(context.Background(), os.Args); err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		fmt.Println(err)
 	}
 }
