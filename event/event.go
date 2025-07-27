@@ -70,10 +70,11 @@ func (event Event) Push(db_ptr *sql.DB) error {
 // true if event exists in db, false otherwise duh
 // id is not needed
 func (event Event) Find(db_ptr *sql.DB) (bool, error) {
-	// couldnt find how to return just the count but whatever
-	rows, err := db_ptr.Query(
+	count := sql.NullInt32{}
+
+	if err := db_ptr.QueryRow(
 		`
-		SELECT * FROM main 
+		SELECT COUNT(*) FROM main 
 		WHERE event_name=? 
 		AND begin_datetime=?
 		AND end_datetime=?
@@ -89,14 +90,8 @@ func (event Event) Find(db_ptr *sql.DB) (bool, error) {
 			return nil
 		}(),
 		event.Type,
-	)
-	if err != nil {
+	).Scan(&count); err != nil || !count.Valid {
 		return false, fmt.Errorf("Event Find error: %w: %w", ErrSqlite, err)
 	}
-
-	found := false
-	for rows.Next() {
-		found = true
-	}
-	return found, nil
+	return count.Int32 > 0, nil
 }
