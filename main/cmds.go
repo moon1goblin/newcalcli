@@ -18,36 +18,44 @@ var (
 		// so like "-n im batman"'s value is im
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name: "begin",
-				Aliases: []string{"b"},
+				Name:     "begin",
+				Aliases:  []string{"b"},
 				Required: true,
 			},
 			&cli.StringFlag{
-				Name: "end",
-				Aliases: []string{"e"},
+				Name:     "end",
+				Aliases:  []string{"e"},
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "name",
-				Aliases: []string{"n"},
+				Name:     "name",
+				Aliases:  []string{"n"},
 				Required: true,
 			},
-			// TODO: add a --yes flag to bypass asking for confirmation
+			&cli.BoolFlag{
+				Name:     "yes",
+				Aliases:  []string{"y"},
+				Required: false,
+			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			// take the db_ptr out of the context (again idk wtf that is)
 			db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 			my_event, err := cal.EventCreate(cmd.String("name"), cmd.String("begin"), cmd.String("end"), db_ptr)
+			skip_confirmation := cmd.Bool("yes")
 			if err != nil {
 				return fmt.Errorf("error on command new: %w", err)
 			}
 
-			fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
-			if confirmed, err := ConfirmYNPrompt(); err != nil {
-				return fmt.Errorf("error on command new: %w", err)
-			} else if !confirmed {
-				return nil
+			if !skip_confirmation {
+				fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
+				if confirmed, err := ConfirmYNPrompt(); err != nil {
+					return fmt.Errorf("error on command new: %w", err)
+				} else if !confirmed {
+					return nil
+				}
+
 			}
 
 			if err := my_event.Push(db_ptr); err != nil {
@@ -61,13 +69,13 @@ var (
 		Name: "ls",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
-				Name: "begin",
-				Aliases: []string{"b"},
+				Name:     "begin",
+				Aliases:  []string{"b"},
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name: "end",
-				Aliases: []string{"e"},
+				Name:     "end",
+				Aliases:  []string{"e"},
 				Required: false,
 			},
 		},
@@ -111,7 +119,7 @@ var (
 		Name: "rm",
 		Flags: []cli.Flag{
 			&cli.Int64Flag{
-				Name: "id",
+				Name:     "id",
 				Required: true,
 			},
 			// &cli.StringFlag{
