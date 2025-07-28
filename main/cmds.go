@@ -43,11 +43,11 @@ var (
 			db_ptr := ctx.Value("db_ptr").(*sql.DB)
 
 			my_event, err := cal.EventCreate(cmd.String("name"), cmd.String("begin"), cmd.String("end"), db_ptr)
-			skip_confirmation := cmd.Bool("yes")
 			if err != nil {
 				return fmt.Errorf("error on command new: %w", err)
 			}
 
+			skip_confirmation := cmd.Bool("yes")
 			if !skip_confirmation {
 				fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
 				if confirmed, err := ConfirmYNPrompt(); err != nil {
@@ -55,7 +55,6 @@ var (
 				} else if !confirmed {
 					return nil
 				}
-
 			}
 
 			if err := my_event.Push(db_ptr); err != nil {
