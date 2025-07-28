@@ -4,13 +4,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"time"
 	"strings"
+	"time"
 
 	_ "modernc.org/sqlite"
 )
 
 type EventType int
+
 const (
 	// for testing
 	NilEvent EventType = iota
@@ -21,12 +22,12 @@ const (
 
 type Event struct {
 	// sometimes i use this sometimes i dont idk
-	Id int
-	Name string
+	Id         int
+	Name       string
 	Begin_time time.Time
 	// TODO: find an optinal<T> package or something
 	End_time sql.NullTime
-	Type EventType
+	Type     EventType
 }
 
 var ErrEventAlreadyExists = errors.New("event already exists")
@@ -47,9 +48,9 @@ func EventCreate(name_str, begin_datetime_str, end_datetime_str string, db_ptr *
 
 func (event Event) String(withdate bool) string {
 	var (
-		builder strings.Builder
+		builder      strings.Builder
 		begin_format string
-		end_format string
+		end_format   string
 	)
 
 	if withdate {
@@ -102,7 +103,7 @@ func (event Event) Push(db_ptr *sql.DB) error {
 		`,
 		event.Name,
 		event.Begin_time.Unix(),
-		func() *int64 { 
+		func() *int64 {
 			if event.End_time.Valid {
 				// cant take addres of return value
 				// long live the garbage collector
@@ -161,7 +162,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 	// TODO: count how many rows it returned and allocate the events array accordingly
 	var (
 		rows *sql.Rows
-		err error
+		err  error
 	)
 	// checking if we even have a begin and an end
 	// there must be a better way... but im too dumb to see it
@@ -170,7 +171,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			`
 			SELECT * 
 			FROM sorted_view;
-			`, 
+			`,
 		); err != nil {
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
 		}
@@ -180,7 +181,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			SELECT * 
 			FROM sorted_view 
 			WHERE begin_datetime >= ?;
-			`, 
+			`,
 			begin.Time.Unix(),
 		); err != nil {
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
@@ -191,7 +192,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			SELECT * 
 			FROM sorted_view 
 			WHERE begin_datetime < ?;
-			`, 
+			`,
 			end.Time.Unix(),
 		); err != nil {
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
@@ -203,7 +204,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			FROM sorted_view 
 			WHERE datetime(begin_datetime) >= ? 
 			AND datetime(begin_datetime) < ?;
-			`, 
+			`,
 			begin.Time.Unix(),
 			end.Time.Unix(),
 		); err != nil {
@@ -211,10 +212,10 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 		}
 	}
 
-	var(
-		events []Event
+	var (
+		events      []Event
 		begin_dummy int64
-		end_dummy sql.NullInt64
+		end_dummy   sql.NullInt64
 	)
 
 	for rows.Next() {
@@ -229,6 +230,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			return &events, fmt.Errorf("GetEventsInRange error while scanning rows: %w: %w", ErrSqlite, err)
 		}
 		new_event.Begin_time = time.Unix(begin_dummy, 0)
+		// FIXME:lamdba is not needed here, refactor with if
 		new_event.End_time = func() sql.NullTime {
 			if end_dummy.Valid {
 				return sql.NullTime{Time: time.Unix(end_dummy.Int64, 0), Valid: true}

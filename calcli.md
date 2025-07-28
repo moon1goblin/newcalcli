@@ -73,3 +73,16 @@ dog bday
 
 mon 28 july
 go shopping
+
+## how to server
+
+when user logs into cal, app sends fetch query to the server
+then comparing local and server db, updating the older one
+need to keep track of last change date??
+think what to send: all db, or difference
+need to check rights to send and get things from/to server
+maybe transfer data with json
+send db or lone events?
+make ping
+On server: db, posmotrim logicu
+proga for client and server to send simple queries

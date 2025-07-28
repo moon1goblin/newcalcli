@@ -8,16 +8,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-var processDatesTestcases = []struct{
+var processDatesTestcases = []struct {
 	Testname string
 
-	Event_name_str string
+	Event_name_str     string
 	Begin_datetime_str string
-	End_datetime_str string
+	End_datetime_str   string
 
 	// ok for this test itd be 0 if event == nil
 	ExpectedEventType cal.EventType
-	ExpectedErr error
+	ExpectedErr       error
 }{
 	{"full day 1 day", "", "12 12", "", cal.FullDayEvent, nil},
 	{"full day multiple days", "", "8 11", "10 11", cal.FullDayEvent, nil},
@@ -30,7 +30,7 @@ var processDatesTestcases = []struct{
 
 func TestProccesDate(t *testing.T) {
 	for _, tc := range processDatesTestcases {
-		t.Run(tc.Testname, func(t *testing.T){
+		t.Run(tc.Testname, func(t *testing.T) {
 			assert := assert.New(t)
 			event, err := cal.ProcessDates(
 				tc.Event_name_str,
@@ -49,18 +49,20 @@ func TestProccesDate(t *testing.T) {
 	}
 }
 
-var timeFromStrTestcases = []struct{
+var timeFromStrTestcases = []struct {
 	Testname string
 
 	Time_str string
 
 	// making timestr would be a pain
 	// so ill just verify with strings
-	ExpectedRes string
+	ExpectedRes         string
 	ExpectedWasOnlyDate bool
-	ExpectedErr error
+	ExpectedErr         error
 }{
 	{"just a normal test", "12/12/12/12", "2025-12-12 12:12:00", false, nil},
+	// FIXME: this test below
+	{"ignore seconds and ms", "12/12/12/12/12/12", "2025-12-12 12:12:00", false, nil},
 	{"multiple delimiters", "11 --. 9 /// 00006", "2025-09-11 06:00:00", false, nil},
 	{"empty string", "", "", false, cal.ErrEmptyString},
 	{"no month", "12", "", false, cal.ErrNoDayAndMonth},
@@ -78,7 +80,7 @@ var timeFromStrTestcases = []struct{
 
 func TestTimeFromStr(t *testing.T) {
 	for _, tc := range timeFromStrTestcases {
-		t.Run(tc.Testname, func(t *testing.T){
+		t.Run(tc.Testname, func(t *testing.T) {
 			assert := assert.New(t)
 			res, onlydate, err := cal.TimeFromStr(tc.Time_str)
 

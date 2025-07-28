@@ -1,18 +1,18 @@
 package cal
 
-import(
+import (
+	"database/sql"
 	"errors"
 	"fmt"
-	"database/sql"
 	"slices"
 	"strconv"
 	"strings"
 	"time"
 )
 
-var(
+var (
 	ErrInvalidBeginEndCombo = errors.New("invalid begin/end combination")
-	ErrEndBeforeBegin = errors.New("end before begin")
+	ErrEndBeforeBegin       = errors.New("end before begin")
 )
 
 func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (*Event, error) {
@@ -68,16 +68,16 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 	}
 
 	return &Event{
-		Name: event_name_str,
+		Name:       event_name_str,
 		Begin_time: p_begin_time.Time,
-		End_time: p_end_time,
-		Type: my_event_type,
+		End_time:   p_end_time,
+		Type:       my_event_type,
 	}, nil
 }
 
-var(
-	ErrEmptyString = errors.New("empty string")
-	ErrNoDayAndMonth = errors.New("date must have day and month")
+var (
+	ErrEmptyString     = errors.New("empty string")
+	ErrNoDayAndMonth   = errors.New("date must have day and month")
 	ErrInvalidDateTime = errors.New("invalid datetime")
 )
 
@@ -102,16 +102,15 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 			return nil
 		}
 		var (
-			val int
+			val       int
 			is_in_map bool
-			err error
+			err       error
 		)
 		if val, is_in_map = months[builder.String()]; is_in_map {
 			if cur_datetime_value == 0 {
 				monthwasfirst = true
 			}
-		} else if val, err = strconv.Atoi(builder.String()); 
-			err != nil || 
+		} else if val, err = strconv.Atoi(builder.String()); err != nil ||
 			cur_datetime_value <= 1 && val == 0 {
 			return fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrInvalidDateTime)
 		}
@@ -141,7 +140,7 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 	only_date_no_time := false
 
 	// if no month and day we dont like that
-	if cur_datetime_value <= 1  {
+	if cur_datetime_value <= 1 {
 		return sql.NullTime{}, false, fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrNoDayAndMonth)
 	} else if cur_datetime_value == 2 {
 		only_date_no_time = true
@@ -153,6 +152,7 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 
 	datetime := time.Date(
 		// TODO: add year somehow
+		// TODO: make flag for year, by default current year
 		time.Now().Year(),
 		time.Month(datetimevalues[1]),
 		datetimevalues[0],
@@ -171,62 +171,62 @@ var delimiters = []rune{':', ' ', '.', '/', '-'}
 
 // did this manually so i have more control := (= are tears)
 // edit: it was so ugly i had to put it at the bottom of the file
-var months = map[string]int {
+var months = map[string]int{
 	"January": 1,
-	"Jan": 1,
+	"Jan":     1,
 	"january": 1,
-	"jan": 1,
+	"jan":     1,
 
 	"February": 2,
-	"Feb": 2,
+	"Feb":      2,
 	"february": 2,
-	"feb": 2,
+	"feb":      2,
 
 	"March": 3,
-	"Mar": 3,
+	"Mar":   3,
 	"march": 3,
-	"mar": 3,
+	"mar":   3,
 
 	"April": 4,
-	"Apr": 4,
+	"Apr":   4,
 	"april": 4,
-	"apr": 4,
+	"apr":   4,
 
 	"May": 5,
 	"may": 5,
 
 	"June": 6,
-	"Jun": 6,
+	"Jun":  6,
 	"june": 6,
-	"jun": 6,
+	"jun":  6,
 
 	"July": 7,
-	"Jul": 7,
+	"Jul":  7,
 	"july": 7,
-	"jul": 7,
+	"jul":  7,
 
 	"August": 8,
-	"Aug": 8,
+	"Aug":    8,
 	"august": 8,
-	"aug": 8,
+	"aug":    8,
 
 	"September": 9,
-	"Sep": 9,
+	"Sep":       9,
 	"september": 9,
-	"sep": 9,
+	"sep":       9,
 
 	"October": 10,
-	"Oct": 10,
+	"Oct":     10,
 	"october": 10,
-	"oct": 10,
+	"oct":     10,
 
 	"November": 11,
-	"Nov": 11,
+	"Nov":      11,
 	"november": 11,
-	"nov": 11,
+	"nov":      11,
 
 	"December": 12,
-	"Dec": 12,
+	"Dec":      12,
 	"december": 12,
-	"dec": 12,
+	"dec":      12,
 }
