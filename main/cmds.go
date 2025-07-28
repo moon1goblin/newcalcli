@@ -11,11 +11,11 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+// TODO: descriptions for commands and flags (later)
+
 var (
 	Command_new *cli.Command = &cli.Command{
 		Name: "new",
-		// TODO: flags think their values are only the first word :(
-		// so like "-n im batman"'s value is im
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:     "begin",

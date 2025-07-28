@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"io"
 )
 
 func main() {
@@ -12,7 +13,14 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	if response.StatusCode == 200 {
-		fmt.Println("succes")
+
+	defer response.Body.Close()
+
+	body, err := io.ReadAll(response.Body)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	// Print the response body to stdout
+	fmt.Printf("%s\n", body)
 }
