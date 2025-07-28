@@ -1,7 +1,7 @@
 package main
 
 import (
-	"calcli/cal"
+	"github.com/moon1goblin/newcalcli/cal"
 	"context"
 	"database/sql"
 	"errors"
@@ -47,9 +47,9 @@ var (
 				return fmt.Errorf("error on command new: %w", err)
 			}
 
-			skip_confirmation := cmd.Bool("yes")
-			if !skip_confirmation {
+			if !cmd.Bool("yes") {
 				fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
+				defer fmt.Print("\n")
 				if confirmed, err := ConfirmYNPrompt(); err != nil {
 					return fmt.Errorf("error on command new: %w", err)
 				} else if !confirmed {

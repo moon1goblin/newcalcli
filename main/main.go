@@ -1,7 +1,7 @@
 package main
 
 import (
-	"calcli/cal"
+	"github.com/moon1goblin/newcalcli/cal"
 	"context"
 	"database/sql"
 	"log"

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"calcli/cal"
+	"github.com/moon1goblin/newcalcli/cal"
 	"container/list"
 	"errors"
 	"fmt"
