@@ -1,9 +1,9 @@
 package main
 
 import (
+	"context"
 	"github.com/moon1goblin/newcalcli/cal"
 	"github.com/urfave/cli/v3"
-	"context"
 	"log"
 	"os"
 )
@@ -18,6 +18,7 @@ func main() {
 			Command_new,
 			Command_ls,
 			Command_rm,
+			Command_find,
 		},
 	}
 

@@ -1,13 +1,12 @@
 package main
 
 import (
-	"github.com/moon1goblin/newcalcli/cal"
-	"golang.org/x/term"
-	// "container/list"
-	"strings"
 	"errors"
 	"fmt"
+	"github.com/moon1goblin/newcalcli/cal"
+	"golang.org/x/term"
 	"os"
+	"strings"
 )
 
 // TODO: center events to the right edge of their time
@@ -17,8 +16,8 @@ func PrintEvents(events *[]cal.Event) string {
 	if events == nil {
 		return ""
 	}
-	var(
-		builder strings.Builder
+	var (
+		builder   strings.Builder
 		last_date string
 		first_run bool = true
 		// multiple_day_full_day_events = list.New()
@@ -83,4 +82,17 @@ func ConfirmYNPrompt() (bool, error) {
 	} else {
 		return false, nil
 	}
+}
+
+func NumberSelectPrompt() (byte, error) {
+	input := make([]byte, 2)
+	if bytes_read, err := os.Stdin.Read(input); err != nil || bytes_read > 2 {
+		return 0, fmt.Errorf("ConfirmYNPrompt error reading char from stdin: %w", err)
+	}
+	input[0] -= 48 // This is also retarded btw, but who cares
+	input[1] -= 48
+	// fmt.Printf("\n%d %d", input[0], input[1])
+	// fmt.Printf("\n%d", input[0]*10+input[1])
+
+	return input[0]*10 + input[1], nil // I know this is retarded but whatever
 }
