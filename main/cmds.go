@@ -3,12 +3,10 @@ package main
 import (
 	"github.com/moon1goblin/newcalcli/cal"
 	"context"
-	"database/sql"
 	"errors"
 	"fmt"
 
 	"github.com/urfave/cli/v3"
-	_ "modernc.org/sqlite"
 )
 
 // TODO: descriptions for commands and flags (later)
@@ -39,10 +37,7 @@ var (
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			// take the db_ptr out of the context (again idk wtf that is)
-			db_ptr := ctx.Value("db_ptr").(*sql.DB)
-
-			my_event, err := cal.EventCreate(cmd.String("name"), cmd.String("begin"), cmd.String("end"), db_ptr)
+			my_event, err := cal.EventCreate(cmd.String("name"), cmd.String("begin"), cmd.String("end"))
 			if err != nil {
 				return fmt.Errorf("error on command new: %w", err)
 			}
@@ -57,7 +52,7 @@ var (
 				}
 			}
 
-			if err := my_event.Push(db_ptr); err != nil {
+			if err := my_event.Push(); err != nil {
 				return fmt.Errorf("newAction error: %w", err)
 			}
 
@@ -79,8 +74,6 @@ var (
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			db_ptr := ctx.Value("db_ptr").(*sql.DB)
-
 			// process dates
 			begin_time, _, err := cal.TimeFromStr(cmd.String("begin"))
 			if err != nil && !errors.Is(err, cal.ErrEmptyString) {
@@ -92,7 +85,7 @@ var (
 			}
 
 			// get sorted events in range [begin, end)
-			events, err := cal.GetEventsInRange(begin_time, end_time, db_ptr)
+			events, err := cal.GetEventsInRange(begin_time, end_time)
 			if err != nil {
 				return fmt.Errorf("ListEvents error: %w", err)
 			}
@@ -102,17 +95,6 @@ var (
 			return nil
 		},
 	}
-	// Cmd_init *cli.Command = &cli.Command{
-	// 	Name: "init",
-	// 	Action: func(ctx context.Context, cmd *cli.Command) error {
-	// 		// take the db_ptr out of the context (again idk wtf that is)
-	// 		db_ptr := ctx.Value("db_ptr").(*sql.DB)
-	// 		if err := cal.InitDB(db_ptr); err != nil {
-	// 			return fmt.Errorf("error on init command: %w", err)
-	// 		}
-	// 		return nil
-	// 	},
-	// }
 	// TODO: better rm, not just rm by id lol
 	Command_rm *cli.Command = &cli.Command{
 		Name: "rm",
@@ -121,26 +103,9 @@ var (
 				Name:     "id",
 				Required: true,
 			},
-			// &cli.StringFlag{
-			// 	Name: "name",
-			// 	Aliases: []string{"n"},
-			// 	Required: false,
-			// },
-			// &cli.StringFlag{
-			// 	Name: "begin",
-			// 	Aliases: []string{"b"},
-			// 	Required: false,
-			// },
-			// &cli.StringFlag{
-			// 	Name: "name",
-			// 	Aliases: []string{"n"},
-			// 	Required: false,
-			// },
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			db_ptr := ctx.Value("db_ptr").(*sql.DB)
-
-			if _, err := db_ptr.Exec(
+			if _, err := cal.Db_ptr_g.Exec(
 				`
 				DELETE FROM main 
 				WHERE event_id=?;

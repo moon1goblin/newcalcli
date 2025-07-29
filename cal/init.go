@@ -1,15 +1,21 @@
 package cal
 
 import (
-	"database/sql"
 	"fmt"
+	"database/sql"
+
 	_ "modernc.org/sqlite"
 )
 
-func InitDB(db_ptr *sql.DB) error {
-	// TODO: because were storing time in seconds since Epoch
-	// store timezone too so when switching itd stay the same?
-	if _, err := db_ptr.Exec(
+func InitDB() error {
+	var err error
+	if Db_ptr_g, err = sql.Open("sqlite", "db"); err != nil {
+		return fmt.Errorf("InitDB: failed to connect to db: %w: %w", ErrSqlite, err)
+	}
+
+	if _, err := Db_ptr_g.Exec(
+		// TODO: because were storing time in seconds since Epoch
+		// store timezone too so when switching itd stay the same?
 		`
 		CREATE TABLE IF NOT EXISTS main(
 			event_id INTEGER PRIMARY KEY
@@ -20,19 +26,19 @@ func InitDB(db_ptr *sql.DB) error {
 		);
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create db: %w: %w", ErrSqlite, err)
+		return fmt.Errorf("InitDB: failed to create db: %w: %w", ErrSqlite, err)
 	}
 
 	// create a sorted view for the table
 	// its used in dbshit.GetEventsInRange or something
 		// datetime(begin_datetime)
-	if _, err := db_ptr.Exec(
+	if _, err := Db_ptr_g.Exec(
 		`
 		CREATE VIEW IF NOT EXISTS sorted_view AS 
 		SELECT * FROM main ORDER BY begin_datetime ASC;
 		`,
 	); err != nil {
-		return fmt.Errorf("initAction: failed to create a sorted view in db: %w: %w", ErrSqlite, err)
+		return fmt.Errorf("InitDB: failed to create a sorted view in db: %w: %w", ErrSqlite, err)
 	}
 	return nil
 }

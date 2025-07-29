@@ -10,6 +10,8 @@ import (
 	_ "modernc.org/sqlite"
 )
 
+var Db_ptr_g *sql.DB
+
 type EventType int
 
 const (
@@ -32,13 +34,12 @@ type Event struct {
 
 var ErrEventAlreadyExists = errors.New("event already exists")
 
-func EventCreate(name_str, begin_datetime_str, end_datetime_str string, db_ptr *sql.DB) (*Event, error) {
+func EventCreate(name_str, begin_datetime_str, end_datetime_str string) (*Event, error) {
 	my_event, err := ProcessDates(name_str, begin_datetime_str, end_datetime_str)
 	if err != nil {
 		return nil, fmt.Errorf("EventCreate error: %w", err)
 	}
-	// FIXME: broke on -b 15/04 wtf
-	if found, err := my_event.Find(db_ptr); err != nil {
+	if found, err := my_event.Find(); err != nil {
 		return nil, fmt.Errorf("EventCreate error: %w", err)
 	} else if found {
 		return nil, ErrEventAlreadyExists
@@ -90,8 +91,8 @@ func (event Event) String(withdate bool) string {
 var ErrSqlite = errors.New("Sqlite error")
 
 // insert event into db
-func (event Event) Push(db_ptr *sql.DB) error {
-	_, err := db_ptr.Exec(
+func (event Event) Push() error {
+	_, err := Db_ptr_g.Exec(
 		`
 		INSERT INTO main(
 			event_name
@@ -129,15 +130,15 @@ func (event Event) Push(db_ptr *sql.DB) error {
 // true if event exists in db, false otherwise duh
 // id is not needed
 // FIXME: this broke for some reason
-func (event Event) Find(db_ptr *sql.DB) (bool, error) {
+func (event Event) Find() (bool, error) {
 	var count int
-	if err := db_ptr.QueryRow(
+	if err := Db_ptr_g.QueryRow(
 		`
-		SELECT COUNT(*) FROM main 
-		WHERE event_name=? 
+		SELECT COUNT(*) FROM main
+		WHERE event_name=?
 		AND begin_datetime=?
 		AND end_datetime=?
-		AND event_type=?
+		AND event_type=?;
 		`,
 		event.Name,
 		event.Begin_time.Unix(),
@@ -158,7 +159,7 @@ func (event Event) Find(db_ptr *sql.DB) (bool, error) {
 // returns sorted list of events
 // includes begin and doesnt include end, so like a ray [)
 // begin and end are optional
-func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]Event, error) {
+func GetEventsInRange(begin sql.NullTime, end sql.NullTime) (*[]Event, error) {
 	// TODO: count how many rows it returned and allocate the events array accordingly
 	var (
 		rows *sql.Rows
@@ -167,7 +168,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 	// checking if we even have a begin and an end
 	// there must be a better way... but im too dumb to see it
 	if !begin.Valid && !end.Valid {
-		if rows, err = db_ptr.Query(
+		if rows, err = Db_ptr_g.Query(
 			`
 			SELECT * 
 			FROM sorted_view;
@@ -176,7 +177,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
 		}
 	} else if !begin.Valid {
-		if rows, err = db_ptr.Query(
+		if rows, err = Db_ptr_g.Query(
 			`
 			SELECT * 
 			FROM sorted_view 
@@ -187,7 +188,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
 		}
 	} else if !end.Valid {
-		if rows, err = db_ptr.Query(
+		if rows, err = Db_ptr_g.Query(
 			`
 			SELECT * 
 			FROM sorted_view 
@@ -198,7 +199,7 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			return nil, fmt.Errorf("GetEventsInRange error: %w: %w", ErrSqlite, err)
 		}
 	} else {
-		if rows, err = db_ptr.Query(
+		if rows, err = Db_ptr_g.Query(
 			`
 			SELECT * 
 			FROM sorted_view 
@@ -218,8 +219,8 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 		end_dummy   sql.NullInt64
 	)
 
+	new_event := Event{}
 	for rows.Next() {
-		new_event := Event{}
 		if err := rows.Scan(
 			&new_event.Id,
 			&new_event.Name,
@@ -230,16 +231,13 @@ func GetEventsInRange(begin sql.NullTime, end sql.NullTime, db_ptr *sql.DB) (*[]
 			return &events, fmt.Errorf("GetEventsInRange error while scanning rows: %w: %w", ErrSqlite, err)
 		}
 		new_event.Begin_time = time.Unix(begin_dummy, 0)
-		// FIXME:lamdba is not needed here, refactor with if
-		new_event.End_time = func() sql.NullTime {
-			if end_dummy.Valid {
-				return sql.NullTime{Time: time.Unix(end_dummy.Int64, 0), Valid: true}
-			}
-			return sql.NullTime{}
-		}()
+		if end_dummy.Valid {
+			new_event.End_time = sql.NullTime{Time: time.Unix(end_dummy.Int64, 0), Valid: true}
+		} else {
+			new_event.End_time = sql.NullTime{}
+		}
 
-		// i couldnt figure out how to get the row count
-		// just allocate enough events right away
+		// i couldnt figure out how to get the row count to allocate enough events right away
 		// so append it is
 		events = append(events, new_event)
 	}

@@ -3,46 +3,17 @@ package main
 import (
 	"github.com/moon1goblin/newcalcli/cal"
 	"context"
-	"database/sql"
 	"log"
 	"os"
-
 	"github.com/urfave/cli/v3"
-
-	_ "modernc.org/sqlite"
 )
 
-// TODO: make db_ptr a global variable
-// so i dont have to get it out of context
-// and to pass it to functions every time
-
 func main() {
+	if err := cal.InitDB(); err != nil {
+		log.Fatal(err)
+	}
+
 	cmds := &cli.Command{
-		// keep in mind idk wtf context is
-		// i just know i can use it to pass my data to subcommands
-		Before: func(ctx context.Context, _ *cli.Command) (context.Context, error) {
-			// connect to sqlite instance
-			db_ptr, err := sql.Open("sqlite", "db")
-			if err != nil {
-				return ctx, err
-			}
-			ctx = context.WithValue(ctx, "db_ptr", db_ptr)
-
-			if err := cal.InitDB(db_ptr); err != nil {
-				return ctx, err
-			}
-			return ctx, nil
-		},
-
-		After: func(ctx context.Context, _ *cli.Command) error {
-			// take the db_ptr out of the context (again idk wtf that is)
-			db_ptr := ctx.Value("db_ptr").(*sql.DB)
-
-			// must close db for changes to occur, but im not even sure about that
-			err := db_ptr.Close()
-			return err
-		},
-
 		Commands: []*cli.Command{
 			Command_new,
 			Command_ls,

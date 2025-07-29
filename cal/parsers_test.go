@@ -1,7 +1,7 @@
 package cal_test
 
 import (
-	"calcli/cal"
+	"github.com/moon1goblin/newcalcli/cal"
 	"testing"
 	"time"
 
