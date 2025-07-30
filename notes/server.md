@@ -13,8 +13,6 @@ proga for client and server to send simple queries
 
 ----------------------------------------------------
 
-for grep, TODO: server todos here:
-
 1. [x] basic client server ping pong
 
 2. [ ] verify access and use secure protocols
@@ -32,9 +30,7 @@ https://devcenter.heroku.com/articles/ssl-certificate-self
 2.2. [ ] mutual tls?
 2.3. [ ] success?
 
-3. [ ] somehow jsonify, send json, parse it
-
-4. [ ] figure out what to even send and how to sync dbs
+4. [x] figure out what to even send and how to sync dbs
 
 ### can we just send the sqlite files over https lol?
 our db woulndt be very big, like a few mb max and thats with a looot of events
@@ -98,6 +94,7 @@ wait this is exactly what we need:
 https://github.com/simukti/sqldb-logger
 
 and so yea we can just send the json {sql string, timestamp}
+is using sql strings like that even safe? dependency injection hello
 
 ### server side, what do we do?
 execute patches and log them with {id, sql string, timestamp} :)
@@ -110,3 +107,12 @@ https://felipeemidio.medium.com/offline-first-app-how-bad-is-it-to-build-one-ece
 https://medium.com/offline-camp/security-in-offline-first-apps-59bf4800e82a
 https://www.reddit.com/r/selfhosted/comments/pufhs0/beginner_guide_how_to_secure_your_selfhosted/
 https://ryanisaacg.com/posts/db-internals-basics.html
+
+server related todos here
+- TODO: generate self signed ssl sertificates and use https and then mtls
+- TODO: figure out how to work with json in go
+- TODO: try to execute patches and see what theyd really need to look like
+- TODO: log all sql execs in client into patches with https://github.com/simukti/sqldb-logger
+- TODO: send the initial sqlite file in binary
+
+i think thats enough for now yea
