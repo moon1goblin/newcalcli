@@ -1,10 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
-	"io"
+	"github.com/moon1goblin/newcalcli/cal"
 )
 
 func main() {
@@ -16,11 +17,13 @@ func main() {
 
 	defer response.Body.Close()
 
-	body, err := io.ReadAll(response.Body)
-	if err != nil {
+	decoder := json.NewDecoder(response.Body)
+
+	bday := cal.Event{}
+	if err := decoder.Decode(&bday); err != nil {
 		log.Fatal(err)
 	}
 
-	// Print the response body to stdout
-	fmt.Printf("%s\n", body)
+	fmt.Println(bday.String(false))
+	fmt.Println(bday.Begin_time)
 }

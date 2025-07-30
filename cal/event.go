@@ -45,6 +45,10 @@ func EventCreate(name_str, begin_datetime_str, end_datetime_str string) (*Event,
 	return my_event, nil
 }
 
+// TODO: make this into String() and StringWithDate()
+// that would call string(withdate)
+// because im confused every time i use it and I WROTE THIS
+// FIXME: it doesnt even fucking work, String(false) is WITH DATE SOMEHOW
 func (event Event) String(withdate bool) string {
 	var (
 		builder      strings.Builder
