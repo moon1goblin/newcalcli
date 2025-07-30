@@ -2,12 +2,12 @@ package main
 
 import (
 	"github.com/moon1goblin/newcalcli/cal"
+	"golang.org/x/term"
 	"container/list"
+	"strings"
 	"errors"
 	"fmt"
-	"strings"
 	"os"
-	"golang.org/x/term"
 )
 
 // TODO: center events to the right edge of their time

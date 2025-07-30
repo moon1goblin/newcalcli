@@ -1,11 +1,13 @@
 package cal
 
 import (
-	"fmt"
 	"database/sql"
+	"fmt"
 
 	_ "modernc.org/sqlite"
 )
+
+var Db_ptr_g *sql.DB
 
 func InitDB() error {
 	var err error

@@ -2,15 +2,13 @@ package cal
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
 	"strings"
+	"errors"
 	"time"
+	"fmt"
 
 	_ "modernc.org/sqlite"
 )
-
-var Db_ptr_g *sql.DB
 
 type EventType int
 

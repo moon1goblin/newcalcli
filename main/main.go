@@ -2,10 +2,10 @@ package main
 
 import (
 	"github.com/moon1goblin/newcalcli/cal"
+	"github.com/urfave/cli/v3"
 	"context"
 	"log"
 	"os"
-	"github.com/urfave/cli/v3"
 )
 
 func main() {

@@ -2,12 +2,12 @@ package cal
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
-	"slices"
 	"strconv"
 	"strings"
+	"errors"
+	"slices"
 	"time"
+	"fmt"
 )
 
 var (
@@ -94,7 +94,7 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 
 	last_value_was_delimiter := true
 	var builder strings.Builder
-	cur_datetime_value := 0
+	cur_datetime_index := 0
 	monthwasfirst := false
 
 	proccessLastSlice := func() error {
@@ -107,16 +107,16 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 			err       error
 		)
 		if val, is_in_map = months[builder.String()]; is_in_map {
-			if cur_datetime_value == 0 {
+			if cur_datetime_index == 0 {
 				monthwasfirst = true
 			}
 		} else if val, err = strconv.Atoi(builder.String()); err != nil ||
-			cur_datetime_value <= 1 && val == 0 {
+			cur_datetime_index <= 1 && val == 0 {
 			return fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrInvalidDateTime)
 		}
 
-		datetimevalues[cur_datetime_value] = val
-		cur_datetime_value++
+		datetimevalues[cur_datetime_index] = val
+		cur_datetime_index++
 		builder.Reset()
 		return nil
 	}
@@ -140,9 +140,9 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 	only_date_no_time := false
 
 	// if no month and day we dont like that
-	if cur_datetime_value <= 1 {
+	if cur_datetime_index <= 1 {
 		return sql.NullTime{}, false, fmt.Errorf("TimeFromStr error on string %s: %w", time_str, ErrNoDayAndMonth)
-	} else if cur_datetime_value == 2 {
+	} else if cur_datetime_index == 2 {
 		only_date_no_time = true
 	}
 
