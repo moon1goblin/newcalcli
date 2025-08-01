@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/moon1goblin/newcalcli/cal"
 
@@ -117,36 +116,50 @@ var (
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			// Need to output an id of an event to stdout
+			// First SELECT by name. If >1 results - ask for additional flags
+			var e, b bool
+			if cmd.String("begin") != "" {
+				b = true
+			}
+			if cmd.String("end") != "" {
+				e = true // absolute retarded shit, idk how to make it better
+			}
+
 			begin_time, _, err := cal.TimeFromStr(cmd.String("begin"))
 			if err != nil && !errors.Is(err, cal.ErrEmptyString) {
 				return fmt.Errorf("ListEvents error: %w", err)
 			}
-			end_time, _, err := cal.TimeFromStr(cmd.String("end"))
-			if err != nil && !errors.Is(err, cal.ErrEmptyString) {
-				return fmt.Errorf("ListEvents error: %w", err)
-			}
-
-			var bld strings.Builder
-			args := []any{cmd.String("name")}
-			bld.WriteString("SELECT COUNT(*) FROM sorted_view WHERE event_name=?")
-			if cmd.String("begin") != "" {
-				bld.WriteString(" AND begin_datetime=?")
-				args = append(args, begin_time.Time.Unix())
-			}
-			if cmd.String("end") != "" {
-				bld.WriteString(" AND end_datetime=?")
-				args = append(args, end_time.Time.Unix())
-			}
-			bld.WriteString(";")
+			// end_time, _, err := cal.TimeFromStr(cmd.String("end"))
+			// if err != nil && !errors.Is(err, cal.ErrEmptyString) {
+			// 	return fmt.Errorf("ListEvents error: %w", err)
+			// }
 
 			var count int
-			cal.Db_ptr_g.QueryRow(bld.String(), args[:]...).Scan(&count)
+
+			if !e && !b {
+				if err := cal.Db_ptr_g.QueryRow(`
+				SELECT COUNT(*) 
+				FROM sorted_view 
+				WHERE event_name=?;
+				`, cmd.String("name")).Scan(&count); err != nil {
+					return fmt.Errorf("Erorr occured while searching: %s", err)
+				}
+			}
 
 			if count > 1 {
 				fmt.Printf("Found %d events with specified flags, specify more flags.\n", count)
 				return nil
 			}
-			fmt.Printf("Found %d event(s).\n", count)
+			fmt.Printf("Found 1 shit %s %s", cmd.String("begin_datetime"), begin_time)
+
+			// rows, err := cal.Db_ptr_g.Query(`
+			// 	SELECT FROM sorted_view
+			// 	WHERE event_name=?;
+			// 	`, cmd.String("name"))
+			// if err != nil {
+			// 	return fmt.Errorf("Error occured: %s", err)
+			// }
 			return nil
 		},
 	}
