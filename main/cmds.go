@@ -144,7 +144,7 @@ var (
 			bld.WriteString(";")
 
 			var count int
-			cal.Db_ptr_g.QueryRow(bld.String(), args[:]...).Scan(&count)
+			cal.Db_ptr_g.QueryRow(bld.String(), args...).Scan(&count)
 
 			fmt.Println(count)
 			return nil
