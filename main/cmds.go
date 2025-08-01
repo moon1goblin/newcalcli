@@ -103,7 +103,7 @@ var (
 			&cli.StringFlag{
 				Name:     "name",
 				Aliases:  []string{"n"},
-				Required: true,
+				Required: false,
 			},
 			&cli.StringFlag{
 				Name:     "begin",
@@ -127,8 +127,12 @@ var (
 			}
 
 			var bld strings.Builder
-			args := []any{cmd.String("name")}
-			bld.WriteString("SELECT COUNT(*) FROM sorted_view WHERE event_name=?")
+			args := []any{}
+			bld.WriteString("SELECT COUNT(*) FROM sorted_view WHERE 1=1")
+			if cmd.String("name") != "" {
+				bld.WriteString(" AND event_name=?")
+				args = append(args, cmd.String("name"))
+			}
 			if cmd.String("begin") != "" {
 				bld.WriteString(" AND begin_datetime=?")
 				args = append(args, begin_time.Time.Unix())
