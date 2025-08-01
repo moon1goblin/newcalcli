@@ -142,11 +142,7 @@ var (
 			var count int
 			cal.Db_ptr_g.QueryRow(bld.String(), args[:]...).Scan(&count)
 
-			if count > 1 {
-				fmt.Printf("Found %d events with specified flags, specify more flags.\n", count)
-				return nil
-			}
-			fmt.Printf("Found %d event(s).\n", count)
+			fmt.Println(count)
 			return nil
 		},
 	}
