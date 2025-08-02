@@ -1,14 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/moon1goblin/newcalcli/cal"
-
 	"github.com/urfave/cli/v3"
+	"os"
+	"strconv"
+	"strings"
 )
 
 // TODO: descriptions for commands and flags (later)
@@ -154,49 +155,89 @@ var (
 	Command_rm *cli.Command = &cli.Command{
 		Name: "rm",
 		Flags: []cli.Flag{
-			&cli.Int64Flag{
-				Name:     "id",
+			&cli.StringFlag{
+				Name:     "name",
+				Aliases:  []string{"n"},
 				Required: false,
 			},
 			&cli.StringFlag{
-				Name:     "name",
+				Name:     "begin",
+				Aliases:  []string{"b"},
+				Required: false,
+			},
+			&cli.StringFlag{
+				Name:     "end",
+				Aliases:  []string{"e"},
+				Required: false,
+			},
+			&cli.BoolFlag{
+				Name:     "yes",
+				Aliases:  []string{"y"},
 				Required: false,
 			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.String("name") != "" {
-				cal.Db_ptr_g.Exec(`
-					SELECT FROM sorted_view 
-					WHERE event_name=?;
-				`, cmd.String("name"))
-				// Select all of same name, then ask which to delete, like 1,2,3,4...
-				fmt.Print("Select... idk\n")
-				num, err := NumberSelectPrompt()
-				if num != 0 || err != nil {
-					return fmt.Errorf("rmAction: failed to delete by name: %w", err)
-				}
-
-				if _, err := cal.Db_ptr_g.Exec(
-					`
-				DELETE FROM main 
-				WHERE event_name=?;
-				`,
-					cmd.String("name"),
-				); err != nil {
-					return fmt.Errorf("rmAction: failed to delete by name: %w: %w", cal.ErrSqlite, err)
-				}
-			} else if cmd.Int64("id") != 0 {
-				if _, err := cal.Db_ptr_g.Exec(
-					`
-				DELETE FROM main 
-				WHERE event_id=?;
-				`,
-					cmd.Int64("id"),
-				); err != nil {
-					return fmt.Errorf("rmAction: failed to delete by id: %w: %w", cal.ErrSqlite, err)
-				}
+			begin_time, _, err := cal.TimeFromStr(cmd.String("begin"))
+			if err != nil && !errors.Is(err, cal.ErrEmptyString) {
+				return fmt.Errorf("ListEvents error: %w", err)
+			}
+			end_time, _, err := cal.TimeFromStr(cmd.String("end"))
+			if err != nil && !errors.Is(err, cal.ErrEmptyString) {
+				return fmt.Errorf("ListEvents error: %w", err)
 			}
 
+			oldStdout := os.Stdout
+			r, w, _ := os.Pipe()
+			os.Stdout = w
+
+			// Run the command
+			if err := Command_find.Run(context.Background(), []string{"run", "find", "-n", cmd.String("name"), "-b", cmd.String("begin"), "-e", cmd.String("end")}); err != nil {
+				return fmt.Errorf("Erorr in find command: %s", err)
+			}
+
+			// Restore stdout
+			w.Close()
+			os.Stdout = oldStdout
+
+			// Capture output
+			var buf bytes.Buffer
+			buf.ReadFrom(r)
+			output := buf.String()
+			count, err := strconv.Atoi(strings.TrimRight(output, "\n"))
+			if err != nil {
+				return fmt.Errorf("Error while converting string to integer: %s", err)
+			}
+			switch count {
+			default:
+				fmt.Printf("Found %d events with given flags. Specify more flags or change existing ones.\n", count)
+			case 1:
+				var bld strings.Builder
+				args := []any{}
+				bld.WriteString("DELETE FROM main WHERE 1=1")
+				if cmd.String("name") != "" {
+					bld.WriteString(" AND event_name=?")
+					args = append(args, cmd.String("name"))
+				}
+				if cmd.String("begin") != "" {
+					bld.WriteString(" AND begin_datetime=?")
+					args = append(args, begin_time.Time.Unix())
+				}
+				if cmd.String("end") != "" {
+					bld.WriteString(" AND end_datetime=?")
+					args = append(args, end_time.Time.Unix())
+				}
+				bld.WriteString(";")
+				if !cmd.Bool("yes") {
+					fmt.Print("Confirm? [Y/n]: ")
+					defer fmt.Print("\n")
+					if confirmed, err := ConfirmYNPrompt(); err != nil {
+						return fmt.Errorf("error on command new: %w", err)
+					} else if !confirmed {
+						return nil
+					}
+				}
+				cal.Db_ptr_g.Exec(bld.String(), args...)
+			}
 			return nil
 		},
 	}
