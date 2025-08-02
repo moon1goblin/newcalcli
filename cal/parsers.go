@@ -2,12 +2,12 @@ package cal
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
+	"slices"
 	"strconv"
 	"strings"
-	"errors"
-	"slices"
 	"time"
-	"fmt"
 )
 
 var (
@@ -98,9 +98,6 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 	monthwasfirst := false
 
 	proccessLastSlice := func() error {
-		if last_value_was_delimiter {
-			return nil
-		}
 		var (
 			val       int
 			is_in_map bool
@@ -127,14 +124,20 @@ func TimeFromStr(time_str string) (sql.NullTime, bool, error) {
 			last_value_was_delimiter = false
 			continue
 		}
+		if !last_value_was_delimiter {
+			if err := proccessLastSlice(); err != nil {
+				return sql.NullTime{}, false, err
+			}
+			if cur_datetime_index == 4 {
+				break;
+			}
+			last_value_was_delimiter = true
+		}
+	}
+	if cur_datetime_index < 4 {
 		if err := proccessLastSlice(); err != nil {
 			return sql.NullTime{}, false, err
 		}
-		last_value_was_delimiter = true
-	}
-	// process the last one
-	if err := proccessLastSlice(); err != nil {
-		return sql.NullTime{}, false, err
 	}
 
 	only_date_no_time := false

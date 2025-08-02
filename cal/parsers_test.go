@@ -61,7 +61,6 @@ var timeFromStrTestcases = []struct {
 	ExpectedErr         error
 }{
 	{"just a normal test", "12/12/12/12", "2025-12-12 12:12:00", false, nil},
-	// FIXME: this test below
 	{"ignore seconds and ms", "12/12/12/12/12/12", "2025-12-12 12:12:00", false, nil},
 	{"multiple delimiters", "11 --. 9 /// 00006", "2025-09-11 06:00:00", false, nil},
 	{"empty string", "", "", false, cal.ErrEmptyString},
@@ -74,10 +73,6 @@ var timeFromStrTestcases = []struct {
 	{"zeros in time", "9.08 00:00", "2025-08-09 00:00:00", false, nil},
 }
 
-// FIXME: figure out how to run just one test from here
-// because the function were testing here
-// depends on the function we tested earlier in this file
-
 func TestTimeFromStr(t *testing.T) {
 	for _, tc := range timeFromStrTestcases {
 		t.Run(tc.Testname, func(t *testing.T) {
@@ -85,8 +80,8 @@ func TestTimeFromStr(t *testing.T) {
 			res, onlydate, err := cal.TimeFromStr(tc.Time_str)
 
 			if res.Valid {
-				assert.Equal(res.Time.Format(time.DateTime), tc.ExpectedRes)
-				assert.Equal(onlydate, tc.ExpectedWasOnlyDate)
+				assert.Equal(tc.ExpectedRes, res.Time.Format(time.DateTime))
+				assert.Equal(tc.ExpectedWasOnlyDate, onlydate)
 			}
 			assert.ErrorIs(err, tc.ExpectedErr)
 		})
