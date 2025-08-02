@@ -67,6 +67,11 @@ func ProcessDates(event_name_str, begin_datetime_str, end_datetime_str string) (
 		)
 	}
 
+	// when have no end, begin is our friend :)
+	if !p_end_time.Valid {
+		p_end_time = p_begin_time
+	}
+
 	return &Event{
 		Name:       event_name_str,
 		Begin_time: p_begin_time.Time,
