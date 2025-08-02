@@ -9,9 +9,21 @@ import (
 )
 
 func TestFindCommand(t *testing.T) {
-	cal.InitDB()
-	// db file in /main is a test db. Add new events to it with these two lines ↓
-	// ev, _ := cal.EventCreate("b", "01.01.12.00", "01.01.13.00")
+	cal.InitDB("test_db")
+	// test_db file in /main is a test db. Add new events to it with these lines ↓
+	// ev, _ := cal.EventCreate("a", "01.01.12.00", "")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("a", "01.01.12.00", "01.01.13.00")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("b", "01.01.12.00", "01.01.13.00")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("a", "02.01.12.00", "")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("a", "01.02.12.00", "")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("a", "01.03.12.00", "")
+	// ev.Push()
+	// ev, _ = cal.EventCreate("c", "12.12", "")
 	// ev.Push()
 
 	tests := []struct {
@@ -23,7 +35,7 @@ func TestFindCommand(t *testing.T) {
 		{
 			name:           "./run find",
 			args:           []string{"find"},
-			expectedOutput: "6\n",
+			expectedOutput: "7\n",
 			expectedError:  false,
 		},
 		{
@@ -54,6 +66,18 @@ func TestFindCommand(t *testing.T) {
 			name:           "./run find -n a -b 01.01.12.00 -e 01.01.13.00",
 			args:           []string{"find", "-n", "a", "-b", "01.01.12.00", "-e", "01.01.13.00"},
 			expectedOutput: "1\n",
+			expectedError:  false,
+		},
+		{
+			name:           "./run find -b 12.12",
+			args:           []string{"find", "-b", "12.12"},
+			expectedOutput: "1\n",
+			expectedError:  false,
+		},
+		{
+			name:           "./run find -e 12.12",
+			args:           []string{"find", "-e", "12.12"},
+			expectedOutput: "0\n",
 			expectedError:  false,
 		},
 	}

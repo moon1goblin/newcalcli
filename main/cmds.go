@@ -145,13 +145,14 @@ var (
 			bld.WriteString(";")
 
 			var count int
-			cal.Db_ptr_g.QueryRow(bld.String(), args...).Scan(&count)
+			if err := cal.Db_ptr_g.QueryRow(bld.String(), args...).Scan(&count); err != nil {
+				return fmt.Errorf("Error while copying from row to values pointed by dest: %s", err)
+			}
 
 			fmt.Println(count)
 			return nil
 		},
 	}
-	// TODO: better rm, not just rm by id lol
 	Command_rm *cli.Command = &cli.Command{
 		Name: "rm",
 		Flags: []cli.Flag{
@@ -236,7 +237,9 @@ var (
 						return nil
 					}
 				}
-				cal.Db_ptr_g.Exec(bld.String(), args...)
+				if _, err := cal.Db_ptr_g.Exec(bld.String(), args...); err != nil {
+					return fmt.Errorf("Error while execution query: %s", err)
+				}
 			}
 			return nil
 		},

@@ -9,9 +9,9 @@ import (
 
 var Db_ptr_g *sql.DB
 
-func InitDB() error {
+func InitDB(db_name string) error {
 	var err error
-	if Db_ptr_g, err = sql.Open("sqlite", "db"); err != nil {
+	if Db_ptr_g, err = sql.Open("sqlite", db_name); err != nil {
 		return fmt.Errorf("InitDB: failed to connect to db: %w: %w", ErrSqlite, err)
 	}
 

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	if err := cal.InitDB(); err != nil {
+	if err := cal.InitDB("db"); err != nil {
 		log.Fatal(err)
 	}
 
