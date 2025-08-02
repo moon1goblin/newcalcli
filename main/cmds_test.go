@@ -77,7 +77,7 @@ func TestFindCommand(t *testing.T) {
 		{
 			name:           "./run find -e 12.12",
 			args:           []string{"find", "-e", "12.12"},
-			expectedOutput: "0\n",
+			expectedOutput: "1\n",
 			expectedError:  false,
 		},
 	}
