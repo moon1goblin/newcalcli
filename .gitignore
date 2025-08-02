@@ -1,6 +1,6 @@
-./.git/
-./run
-./db
-./cmds
-./servershit/
-./main/test_db
+.git/
+run
+db
+cmds
+servershit/
+main/test_db
