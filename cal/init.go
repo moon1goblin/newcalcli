@@ -33,7 +33,7 @@ func InitDB() error {
 
 	// create a sorted view for the table
 	// its used in dbshit.GetEventsInRange or something
-		// datetime(begin_datetime)
+	// datetime(begin_datetime)
 	if _, err := Db_ptr_g.Exec(
 		`
 		CREATE VIEW IF NOT EXISTS sorted_view AS 
