@@ -43,7 +43,7 @@ var (
 			}
 
 			if !cmd.Bool("yes") {
-				fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.String(true))
+				fmt.Printf("New event: %s\nConfirm? [Y/n]: ", my_event.StringWithDate())
 				defer fmt.Print("\n")
 				if confirmed, err := ConfirmYNPrompt(); err != nil {
 					return fmt.Errorf("error on command new: %w", err)

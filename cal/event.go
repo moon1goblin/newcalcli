@@ -25,7 +25,6 @@ type Event struct {
 	Id         int
 	Name       string
 	Begin_time time.Time
-	// TODO: find an optinal<T> package or something
 	End_time sql.NullTime
 	Type     EventType
 }
@@ -45,11 +44,15 @@ func EventCreate(name_str, begin_datetime_str, end_datetime_str string) (*Event,
 	return my_event, nil
 }
 
-// TODO: make this into String() and StringWithDate()
-// that would call string(withdate)
-// because im confused every time i use it and I WROTE THIS
-// FIXME: it doesnt even fucking work, String(false) is WITH DATE SOMEHOW
-func (event Event) String(withdate bool) string {
+func (event Event) String() string {
+	return event.string(false)
+}
+
+func (event Event) StringWithDate() string {
+	return event.string(true)
+}
+
+func (event Event) string(withdate bool) string {
 	var (
 		builder      strings.Builder
 		begin_format string
@@ -75,6 +78,10 @@ func (event Event) String(withdate bool) string {
 
 	switch event.Type {
 	case FullDayEvent:
+		if withdate {
+			builder.WriteString(event.Begin_time.Format("01.02.2006"))
+			builder.WriteString(" ")
+		}
 	case InstantEvent:
 		builder.WriteString(event.Begin_time.Format(begin_format))
 		builder.WriteString(" ")

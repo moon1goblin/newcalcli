@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/moon1goblin/newcalcli/cal"
 	"golang.org/x/term"
-	"container/list"
+	// "container/list"
 	"strings"
 	"errors"
 	"fmt"
@@ -21,13 +21,13 @@ func PrintEvents(events *[]cal.Event) string {
 		builder strings.Builder
 		last_date string
 		first_run bool = true
-		multiple_day_full_day_events = list.New()
+		// multiple_day_full_day_events = list.New()
 	)
 
 	for _, cur_event := range *events {
-		if cur_event.Type == cal.FullDayEvent {
-			multiple_day_full_day_events.PushBack(cur_event)
-		}
+		// if cur_event.Type == cal.FullDayEvent {
+		// 	multiple_day_full_day_events.PushBack(cur_event)
+		// }
 		if cur_date := cur_event.Begin_time.Format("Mon 2 Jan"); cur_date != last_date {
 			last_date = cur_date
 			if first_run {
@@ -51,7 +51,7 @@ func PrintEvents(events *[]cal.Event) string {
 			// 	} // it should be ok?
 			// }
 		}
-		builder.WriteString(cur_event.String(false))
+		builder.WriteString(cur_event.String())
 		builder.WriteString("\n")
 	}
 
