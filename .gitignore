@@ -1,3 +1,6 @@
+./.git/
 ./run
-db
-run
+./db
+./cmds
+./servershit/
+./main/test_db
