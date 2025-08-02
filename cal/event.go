@@ -84,12 +84,12 @@ func (event Event) string(withdate bool) string {
 		}
 	case InstantEvent:
 		builder.WriteString(event.Begin_time.Format(begin_format))
-		builder.WriteString(" ")
+		builder.WriteString("\t\t")
 	case WithDurationEvent:
 		builder.WriteString(event.Begin_time.Format(begin_format))
 		builder.WriteString("-")
 		builder.WriteString(event.End_time.Time.Format(end_format))
-		builder.WriteString(" ")
+		builder.WriteString("\t")
 	}
 
 	builder.WriteString(event.Name)
